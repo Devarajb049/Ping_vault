@@ -22,24 +22,15 @@ PingVault is a zero-knowledge, end-to-end encrypted (E2EE) secure file and confi
 - [System Architecture](#-system-architecture)
   - [High-Level Architecture](#high-level-architecture)
   - [Zero-Knowledge E2EE Key Exchange Sequence](#zero-knowledge-e2ee-key-exchange-sequence)
-  - [Application Workflow](#application-workflow)
 - [Technology Stack](#-technology-stack)
 - [Project Folder Structure](#-project-folder-structure)
-- [Folder & File Explanations](#-folder--file-explanations)
-- [Frontend Architecture](#-frontend-architecture)
-- [Backend Architecture](#-backend-architecture)
-- [Database Architecture](#-database-architecture)
 - [API Overview](#-api-overview)
-- [Authentication & Key Management](#-authentication--key-management)
-- [Real-Time WebSocket Pipeline](#-real-time-websocket-pipeline)
-- [Floating Toast Notification System](#-floating-toast-notification-system)
-- [Development Prerequisites](#-development-prerequisites)
-- [Installation & Environment Setup](#-installation--environment-setup)
-- [Running the Project](#-running-the-project)
 - [Vercel & Production Cloud Deployment Guide](#-vercel--production-cloud-deployment-guide)
-- [Build Process & Production](#-build-process--production)
+- [Development Prerequisites](#-development-prerequisites)
+- [Environment Setup](#-environment-setup)
+- [Running the Project](#-running-the-project)
 - [Security & Compliance](#-security--compliance)
-- [License & Acknowledgements](#-license--acknowledgements)
+- [License](#-license)
 
 ---
 
@@ -90,15 +81,35 @@ PingVault provides a production-ready, zero-trust file transmission infrastructu
 
 ```mermaid
 graph TD
-    UserA["Client A (Browser)"] <-->|E2EE WebCrypto| CryptoEngine["AES-256-GCM / RSA-2048"]
-    UserA <-->|REST API + HTTPS| ExpressServer["Node.js / Express Server"]
-    UserA <-->|WebSockets (Socket.IO)| SocketServer["Real-Time Socket Server"]
+    UserA["Client A Browser"] <-->|"E2EE WebCrypto"| CryptoEngine["AES-256-GCM / RSA-2048"]
+    UserA <-->|"REST API over HTTPS"| ExpressServer["Node.js / Express Server"]
+    UserA <-->|"WebSockets Socket.IO"| SocketServer["Real-Time Socket Server"]
     
     ExpressServer <--> MongoDB[("MongoDB Atlas Database")]
-    ExpressServer <--> Security["HMAC Blind Lookup / Security"]
+    ExpressServer <--> Security["HMAC Blind Lookup"]
 
-    ExpressServer -->|Push Notifications| UserB["Client B (Recipient Browser)"]
-    SocketServer -->|Live Toasts & Feed Update| UserB
+    ExpressServer -->|"Push Notifications"| UserB["Client B Recipient Browser"]
+    SocketServer -->|"Live Toasts & Feed Update"| UserB
+```
+
+### Zero-Knowledge E2EE Key Exchange Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Sender as Sender Browser A
+    participant Server as PingVault Server DB
+    actor Recipient as Recipient Browser B
+
+    Sender->>Server: 1. Lookup Recipient Public Key devaa8720
+    Server-->>Sender: Return Recipient RSA Public Key
+    Sender->>Sender: 2. Generate Random AES Key & Encrypt Payload
+    Sender->>Sender: 3. Encrypt AES Key with Recipient RSA Public Key
+    Sender->>Server: 4. Transmit Encrypted Ciphertext + Encrypted AES Key
+    Server->>Recipient: 5. Socket.IO Emit vault_received Event
+    Recipient->>Server: 6. Request Vault Ciphertext
+    Server-->>Recipient: Return Ciphertext + Encrypted AES Key
+    Recipient->>Recipient: 7. Decrypt AES Key with Private Key & Decrypt Payload
 ```
 
 ---
@@ -184,7 +195,7 @@ CLIENT_URL=http://localhost:5173
 
 ---
 
-## 🚀 Running the Project locally
+## 🚀 Running the Project Locally
 
 ```bash
 # Install Dependencies & Start Server (http://localhost:5000)
