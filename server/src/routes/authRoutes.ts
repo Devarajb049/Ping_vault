@@ -1,0 +1,57 @@
+import { Router } from 'express';
+import passport from '../config/passport';
+import { AuthController } from '../controllers/authController';
+import { authenticateToken } from '../middleware/authMiddleware';
+import { authLimiter } from '../middleware/rateLimiters';
+import { CryptoServer } from '../security/cryptoServer';
+import { Session } from '../models/Session';
+import { ENV } from '../config/env';
+
+const router = Router();
+
+router.post('/register', authLimiter, AuthController.register);
+router.post('/login', authLimiter, AuthController.login);
+router.get('/me', authenticateToken, AuthController.getProfile);
+router.post('/logout', authenticateToken, AuthController.logout);
+
+// Google OAuth Routes
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: `${ENV.CLIENT_URL}/login?error=oauth_failed` }),
+  async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        res.redirect(`${ENV.CLIENT_URL}/login?error=no_user`);
+        return;
+      }
+
+      const accessToken = CryptoServer.generateAccessToken({
+        userId: user._id.toString(),
+        role: user.role,
+        receiverId: user.receiverId,
+      });
+      const refreshToken = CryptoServer.generateRefreshToken({ userId: user._id.toString() });
+
+      await Session.create({
+        userId: user._id,
+        refreshToken,
+        deviceFingerprint: req.headers['user-agent'] || 'Google OAuth',
+        ipAddress: req.ip || '127.0.0.1',
+        userAgent: req.headers['user-agent'] || 'Google OAuth',
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+
+      res.cookie('accessToken', accessToken, { httpOnly: true, secure: false, maxAge: 15 * 60 * 1000 });
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 });
+
+      res.redirect(`${ENV.CLIENT_URL}/dashboard`);
+    } catch (err) {
+      res.redirect(`${ENV.CLIENT_URL}/login?error=token_failed`);
+    }
+  }
+);
+
+export default router;
