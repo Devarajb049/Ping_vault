@@ -1,0 +1,64 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer base {
+  html, body {
+    @apply bg-pvDarker text-slate-100 font-inter antialiased selection:bg-pvAccent selection:text-white;
+    overflow-x: hidden;
+    min-height: 100dvh;
+  }
+}
+
+/* Custom Glassmorphism & Neon Glow Utilities */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s ease;
+}
+
+.glass-panel-hover:hover {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(15, 164, 175, 0.5);
+  box-shadow: 0 0 25px rgba(15, 164, 175, 0.25);
+}
+
+.shadow-glow-primary {
+  box-shadow: 0 0 20px rgba(15, 164, 175, 0.35);
+}
+
+.shadow-glow-accent {
+  box-shadow: 0 0 20px rgba(2, 82, 89, 0.45);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 164, 175, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 164, 175, 0.7);
+}
+
+/* Dynamic Viewport Height Utilities for Mobiles */
+.min-h-dvh {
+  min-height: 100dvh;
+}
+
+.h-dvh {
+  height: 100dvh;
+}
