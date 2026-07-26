@@ -10,24 +10,27 @@ export const LandingPage: React.FC = () => {
       <MatrixBackground />
 
       {/* Header / Nav */}
-      <header className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between gap-2">
-        <BrandLogo size="sm" variant="full" className="sm:hidden" />
-        <BrandLogo size="md" variant="full" className="hidden sm:inline-flex" />
-        <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-          <Link
-            to="/login"
-            className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-300 hover:text-white hover:bg-pvAccent/10 transition-all whitespace-nowrap"
-          >
-            Sign In
-          </Link>
-          <Link
-            to="/register"
-            className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-pvPrimary to-pvAccent text-white shadow-glow-primary hover:opacity-90 transition-all whitespace-nowrap"
-          >
-            Start Free
-          </Link>
-        </div>
-      </header>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-4">
+        <header className="px-5 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-pvDark/80 backdrop-blur-xl border border-pvAccent/30 shadow-2xl flex items-center justify-between gap-2 transition-all hover:border-pvAccent/50">
+          <BrandLogo size="sm" variant="full" className="sm:hidden" />
+          <BrandLogo size="md" variant="full" className="hidden sm:inline-flex" />
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+            <Link
+              to="/login"
+              className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-300 hover:text-white hover:bg-pvAccent/10 border border-pvAccent/20 hover:border-pvAccent/40 transition-all whitespace-nowrap"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-pvPrimary to-pvAccent text-white border border-pvAccent/50 shadow-glow-primary hover:opacity-90 hover:border-pvAccent transition-all whitespace-nowrap"
+            >
+              Start Free
+            </Link>
+          </div>
+        </header>
+      </div>
+
 
       {/* Hero Section */}
       <section className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-20 sm:pb-28 text-center">
