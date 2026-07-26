@@ -10,8 +10,9 @@ if (ENV.GOOGLE_CLIENT_ID && ENV.GOOGLE_CLIENT_ID !== 'mock-google-client-id') {
       {
         clientID: ENV.GOOGLE_CLIENT_ID,
         clientSecret: ENV.GOOGLE_CLIENT_SECRET,
-        callbackURL: 'http://localhost:5000/api/v1/auth/google/callback',
+        callbackURL: ENV.GOOGLE_CALLBACK_URL,
       },
+
       async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
         try {
           let user = await User.findOne({ googleId: profile.id });

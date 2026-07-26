@@ -16,6 +16,9 @@ export const ENV = {
     (process.env.NODE_ENV === 'production'
       ? 'https://pingvault-server.onrender.com/api/v1/auth/google/callback'
       : 'http://localhost:5000/api/v1/auth/google/callback'),
-  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
+  CLIENT_URL:
+    process.env.CLIENT_URL ||
+    (process.env.NODE_ENV === 'production' ? 'https://pingvault.vercel.app' : 'http://localhost:5173'),
 };
+
 

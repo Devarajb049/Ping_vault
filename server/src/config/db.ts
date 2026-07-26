@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import dns from 'dns';
 import { ENV } from './env';
+import { seedDemoAccounts } from './seed';
 
 // Force Node.js to use Google & Cloudflare public DNS for SRV resolution
 try {
@@ -15,8 +16,12 @@ export const connectDB = async () => {
       serverSelectionTimeoutMS: 10000,
     });
     console.log(`[MongoDB] Connected Successfully to Host: ${conn.connection.host}`);
+
+    // Seed Demo User Accounts
+    await seedDemoAccounts();
   } catch (error: any) {
     console.error(`[MongoDB Error] Connection failed: ${error.message}`);
     console.warn(`[MongoDB Warning] Operating in fallback mode if database server is unavailable.`);
   }
 };
+
