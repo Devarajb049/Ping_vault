@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -34,9 +34,10 @@ app.use('/api', apiLimiter);
 // Routes
 app.use('/api/v1', apiRouter);
 
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'UP', service: 'Ping Vault Enterprise API', timestamp: new Date() });
 });
+
 
 // Error Handler
 app.use(errorHandler);

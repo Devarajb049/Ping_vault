@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import passport from '../config/passport';
 import { AuthController } from '../controllers/authController';
 import { authenticateToken } from '../middleware/authMiddleware';
@@ -20,9 +20,10 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 router.get(
   '/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: `${ENV.CLIENT_URL}/login?error=oauth_failed` }),
-  async (req: any, res) => {
+  async (req: Request, res: Response) => {
+
     try {
-      const user = req.user;
+      const user = req.user as any;
       if (!user) {
         res.redirect(`${ENV.CLIENT_URL}/login?error=no_user`);
         return;
@@ -30,10 +31,11 @@ router.get(
 
       const accessToken = CryptoServer.generateAccessToken({
         userId: user._id.toString(),
-        role: user.role,
-        receiverId: user.receiverId,
+        role: user.role || 'user',
+        receiverId: user.receiverId || '',
       });
       const refreshToken = CryptoServer.generateRefreshToken({ userId: user._id.toString() });
+
 
       await Session.create({
         userId: user._id,
