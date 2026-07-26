@@ -7,6 +7,7 @@ export interface IUser extends Document {
   passwordHash?: string;
   googleId?: string;
   receiverId: string; // Unique format PV-XXXXX
+  receiverIdHash?: string;
   publicKey: string; // RSA-4096 PEM Public Key
   encryptedPrivateKey: string; // AES-256-GCM Encrypted Private Key
   salt: string;
@@ -26,7 +27,9 @@ const userSchema = new Schema<IUser>(
     passwordHash: { type: String },
     googleId: { type: String, index: true },
     receiverId: { type: String, required: true, unique: true, index: true },
+    receiverIdHash: { type: String, index: true },
     publicKey: { type: String, required: true },
+
     encryptedPrivateKey: { type: String, required: true },
     salt: { type: String, required: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },

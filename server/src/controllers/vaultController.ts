@@ -70,14 +70,31 @@ export class VaultController {
       const sharedVaults = [];
       for (const recId of recipientReceiverIds) {
         const cleanRecId = recId.trim().toLowerCase();
-        const receiverIdHash = CryptoServer.hashReceiverId(cleanRecId);
-        const receiverIdEncrypted = CryptoServer.encryptReceiverId(cleanRecId);
+        const inputHash = CryptoServer.hashReceiverId(cleanRecId);
 
-        // Robust flexible key resolution across case sensitivity and object mappings
-        let encKey = encryptedSymmetricKeys[cleanRecId] || encryptedSymmetricKeys[recId];
+        // Find recipient by receiverId, receiverIdHash, username, or email
+        const recUser = await User.findOne({
+          $or: [
+            { receiverId: cleanRecId },
+            { receiverIdHash: inputHash },
+            { username: cleanRecId },
+            { email: cleanRecId },
+          ],
+        });
+
+        const targetReceiverId = recUser ? recUser.receiverId : cleanRecId;
+        const targetReceiverIdHash = recUser?.receiverIdHash || CryptoServer.hashReceiverId(targetReceiverId);
+        const targetReceiverIdEncrypted = CryptoServer.encryptReceiverId(targetReceiverId);
+
+        // Robust key resolution for recipient key mapping
+        let encKey =
+          encryptedSymmetricKeys[targetReceiverId] ||
+          encryptedSymmetricKeys[cleanRecId] ||
+          encryptedSymmetricKeys[recId];
+
         if (!encKey) {
           const matchingKey = Object.keys(encryptedSymmetricKeys).find(
-            (k) => k.toLowerCase() === cleanRecId
+            (k) => k.toLowerCase() === cleanRecId || k.toLowerCase() === targetReceiverId.toLowerCase()
           );
           if (matchingKey) {
             encKey = encryptedSymmetricKeys[matchingKey];
@@ -90,14 +107,13 @@ export class VaultController {
           const shared = await SharedVault.create({
             vaultId: vault._id,
             senderId: ownerId,
-            receiverIdHash,
-            receiverIdEncrypted,
+            receiverIdHash: targetReceiverIdHash,
+            receiverIdEncrypted: targetReceiverIdEncrypted,
             encryptedSymmetricKey: encKey,
             status: 'pending',
           });
           sharedVaults.push(shared);
 
-          const recUser = await User.findOne({ receiverIdHash });
           if (recUser) {
             await Notification.create({
               userId: recUser._id,
@@ -108,8 +124,14 @@ export class VaultController {
               senderReceiverId,
             });
 
-            // Emit real-time WebSocket toast event to recipient
+            // Emit real-time WebSocket toast events to recipient user ID and receiver ID rooms
             emitToUser(recUser._id.toString(), 'vault_received', {
+              vaultId: vault._id,
+              senderReceiverId,
+              titleEncrypted,
+              expiryTime,
+            });
+            emitToUser(recUser.receiverId, 'vault_received', {
               vaultId: vault._id,
               senderReceiverId,
               titleEncrypted,
@@ -118,6 +140,7 @@ export class VaultController {
           }
         }
       }
+
 
       await ActivityLog.create({
         userId: ownerId as any,
@@ -145,17 +168,30 @@ export class VaultController {
 
   public static async getReceivedVaults(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const receiverId = req.user?.receiverId;
-      if (!receiverId) {
+      const user = await User.findById(req.user?.userId);
+      const receiverId = req.user?.receiverId || user?.receiverId;
+      if (!receiverId && !user) {
         res.status(401).json({ success: false, message: 'Unauthorized' });
         return;
       }
 
-      const receiverIdHash = CryptoServer.hashReceiverId(receiverId);
-      const sharedVaults = await SharedVault.find({ receiverIdHash, status: { $ne: 'revoked' } })
+      const possibleHashes = Array.from(
+        new Set([
+          CryptoServer.hashReceiverId(receiverId || ''),
+          user?.receiverIdHash,
+          user?.username ? CryptoServer.hashReceiverId(user.username.trim().toLowerCase()) : '',
+          user?.email ? CryptoServer.hashReceiverId(user.email.trim().toLowerCase()) : '',
+        ].filter(Boolean))
+      );
+
+      const sharedVaults = await SharedVault.find({
+        receiverIdHash: { $in: possibleHashes },
+        status: { $ne: 'revoked' },
+      })
         .populate('vaultId')
         .populate('senderId', 'fullName username receiverId avatarUrl')
         .sort({ createdAt: -1 });
+
 
       const result = sharedVaults
         .filter((sv) => sv.vaultId)
