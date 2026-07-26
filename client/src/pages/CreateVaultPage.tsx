@@ -211,13 +211,15 @@ export const CreateVaultPage: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 w-full">
         {/* Recipient User IDs Section */}
         <div className="p-4 sm:p-6 rounded-2xl glass-panel border border-pvAccent/30 space-y-4 w-full">
-          <label className="block text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+          <label htmlFor="create-target-users" className="block text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
             1. Target User IDs (e.g. {userPublicId})
           </label>
           <p className="text-xs text-slate-400">Enter recipient User IDs. Public key exchange occurs automatically.</p>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full">
             <input
+              id="create-target-users"
+              name="targetUsers"
               type="text"
               value={receiverInput}
               onChange={(e) => setReceiverInput(e.target.value)}
@@ -262,13 +264,15 @@ export const CreateVaultPage: React.FC = () => {
 
         {/* Payload Content Tabs & Upload */}
         <div className="p-4 sm:p-6 rounded-2xl glass-panel border border-pvAccent/30 space-y-6 w-full">
-          <label className="block text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+          <label htmlFor="create-vault-title" className="block text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
             2. Vault Payload Content
           </label>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">Vault Title (Encrypted)</label>
+            <label htmlFor="create-vault-title" className="block text-xs font-semibold text-slate-300 mb-2">Vault Title (Encrypted)</label>
             <input
+              id="create-vault-title"
+              name="title"
               type="text"
               required
               value={title}
@@ -308,7 +312,10 @@ export const CreateVaultPage: React.FC = () => {
 
           {activeTab === 'text' ? (
             <div>
+              <label htmlFor="create-vault-content" className="sr-only">Secret Note Content</label>
               <textarea
+                id="create-vault-content"
+                name="textContent"
                 rows={6}
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
@@ -320,6 +327,7 @@ export const CreateVaultPage: React.FC = () => {
             <div className="border-2 border-dashed border-pvAccent/30 hover:border-pvAccent rounded-2xl p-6 sm:p-8 text-center bg-pvDarker/50 transition-colors cursor-pointer relative">
               <input
                 type="file"
+                name="file"
                 onChange={(e) => handleFileSelect(e.target.files ? e.target.files[0] : null)}
                 className="hidden"
                 id="file-upload"
@@ -357,18 +365,20 @@ export const CreateVaultPage: React.FC = () => {
 
         {/* Expiration Rules with Custom Time & Custom Views */}
         <div className="p-4 sm:p-6 rounded-2xl glass-panel border border-pvAccent/30 space-y-6 w-full">
-          <label className="block text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+          <label htmlFor="create-time-expiry" className="block text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
             3. Expiration Policies
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
             {/* Time Expiry */}
             <div className="space-y-2 min-w-0 w-full">
-              <label className="block text-xs font-semibold text-slate-300 flex items-center space-x-2">
+              <label htmlFor="create-time-expiry" className="block text-xs font-semibold text-slate-300 flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-pvAccent" />
                 <span>Time-Based Expiry</span>
               </label>
               <select
+                id="create-time-expiry"
+                name="expiryMinutes"
                 value={isCustomTime ? 'custom' : expiryMinutes}
                 onChange={(e) => {
                   if (e.target.value === 'custom') {
@@ -396,6 +406,8 @@ export const CreateVaultPage: React.FC = () => {
               {isCustomTime && (
                 <div className="flex gap-2 pt-2 animate-fade-in w-full">
                   <input
+                    id="create-custom-time-val"
+                    name="customTimeVal"
                     type="number"
                     min={1}
                     value={customTimeValue}
@@ -404,6 +416,8 @@ export const CreateVaultPage: React.FC = () => {
                     placeholder="Enter duration"
                   />
                   <select
+                    id="create-custom-time-unit"
+                    name="customTimeUnit"
                     value={customTimeUnit}
                     onChange={(e) => setCustomTimeUnit(e.target.value as any)}
                     className="w-1/2 bg-pvDarker border border-pvAccent/40 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none min-w-0"
@@ -418,11 +432,13 @@ export const CreateVaultPage: React.FC = () => {
 
             {/* View Limit */}
             <div className="space-y-2 min-w-0 w-full">
-              <label className="block text-xs font-semibold text-slate-300 flex items-center space-x-2">
+              <label htmlFor="create-view-limit" className="block text-xs font-semibold text-slate-300 flex items-center space-x-2">
                 <Eye className="w-4 h-4 text-pvPurple" />
                 <span>View-Based Limit</span>
               </label>
               <select
+                id="create-view-limit"
+                name="viewLimit"
                 value={isCustomViews ? 'custom' : maxViews || ''}
                 onChange={(e) => {
                   if (e.target.value === 'custom') {
@@ -446,6 +462,8 @@ export const CreateVaultPage: React.FC = () => {
               {isCustomViews && (
                 <div className="pt-2 animate-fade-in w-full">
                   <input
+                    id="create-custom-views-val"
+                    name="customViewsVal"
                     type="number"
                     min={1}
                     value={customViewsValue}
@@ -492,9 +510,13 @@ export const CreateVaultPage: React.FC = () => {
 
             {isPasswordProtected && (
               <div className="relative w-full">
+                <label htmlFor="create-secondary-password" className="sr-only">Secondary Vault Password</label>
                 <input
+                  id="create-secondary-password"
+                  name="vaultPassword"
                   type={showPassword ? 'text' : 'password'}
                   required
+                  autoComplete="new-password"
                   value={vaultPassword}
                   onChange={(e) => setVaultPassword(e.target.value)}
                   placeholder="Set secondary vault password..."
@@ -510,6 +532,7 @@ export const CreateVaultPage: React.FC = () => {
                 </button>
               </div>
             )}
+
 
             {/* Self Destruct Toggle Switch */}
             <div className="flex items-center justify-between">

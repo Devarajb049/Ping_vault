@@ -111,14 +111,17 @@ export const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                 Email Address
               </label>
               <div className="relative">
                 <Mail className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
+                  id="login-email"
+                  name="email"
                   type="email"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
@@ -128,14 +131,17 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              <label htmlFor="login-password" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                 Master Password
               </label>
               <div className="relative">
                 <KeyRound className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
+                  id="login-password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
@@ -151,6 +157,7 @@ export const LoginPage: React.FC = () => {
                 </button>
               </div>
             </div>
+
 
             <button
               type="submit"
