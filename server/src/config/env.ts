@@ -11,5 +11,11 @@ export const ENV = {
   REFRESH_EXPIRES_IN: '7d',
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || 'mock-google-client-id',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || 'mock-google-client-secret',
+  GOOGLE_CALLBACK_URL:
+    process.env.GOOGLE_CALLBACK_URL ||
+    (process.env.NODE_ENV === 'production'
+      ? 'https://pingvault-server.onrender.com/api/v1/auth/google/callback'
+      : 'http://localhost:5000/api/v1/auth/google/callback'),
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
 };
+

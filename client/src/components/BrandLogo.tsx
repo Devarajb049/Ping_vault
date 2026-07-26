@@ -14,103 +14,52 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   showTagline = false,
 }) => {
   const sizePx = {
-    sm: { icon: 28, text: 'text-lg', tagline: 'text-[10px]' },
-    md: { icon: 38, text: 'text-xl', tagline: 'text-xs' },
-    lg: { icon: 50, text: 'text-2xl', tagline: 'text-xs' },
-    xl: { icon: 68, text: 'text-4xl', tagline: 'text-sm' },
-    '2xl': { icon: 90, text: 'text-5xl', tagline: 'text-base' },
+    sm: { container: 'w-8 h-8 rounded-xl p-1.5', icon: 'w-4 h-4', text: 'text-lg', tagline: 'text-[10px]' },
+    md: { container: 'w-10 h-10 rounded-2xl p-2', icon: 'w-5 h-5', text: 'text-xl', tagline: 'text-xs' },
+    lg: { container: 'w-14 h-14 rounded-2xl p-3', icon: 'w-7 h-7', text: 'text-2xl', tagline: 'text-xs' },
+    xl: { container: 'w-20 h-20 rounded-3xl p-4', icon: 'w-10 h-10', text: 'text-4xl', tagline: 'text-sm' },
+    '2xl': { container: 'w-24 h-24 rounded-3xl p-5', icon: 'w-12 h-12', text: 'text-5xl', tagline: 'text-base' },
   }[size];
-
-  const strokeColor = variant === 'monochrome' ? '#FFFFFF' : '#0FA4AF';
-  const accentColor = variant === 'monochrome' ? '#FFFFFF' : '#FF947A';
 
   return (
     <div className={`inline-flex items-center space-x-3 select-none ${className}`}>
-      {/* High-Tech Cyber Shield Logo Icon */}
+      {/* Glowing Squircle Badge Icon Container */}
       <div className="relative group flex items-center justify-center">
-        <div className="absolute -inset-1.5 rounded-full bg-gradient-to-r from-pvPrimary via-pvAccent to-pvTeal opacity-40 blur-md group-hover:opacity-75 transition duration-500 animate-pulse" />
-        <svg
-          width={sizePx.icon}
-          height={sizePx.icon}
-          viewBox="0 0 100 100"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="relative z-10 flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+        {/* Soft Glow Effect */}
+        <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-teal-400 to-cyan-500 opacity-40 blur-md group-hover:opacity-75 transition duration-300" />
+
+        {/* Teal-Cyan Gradient Rounded Square Badge */}
+        <div
+          className={`relative z-10 flex items-center justify-center bg-gradient-to-br from-teal-500 via-teal-600 to-cyan-700 border border-teal-300/40 shadow-lg shadow-teal-900/40 ${sizePx.container} transition-transform duration-300 group-hover:scale-105`}
         >
-          <defs>
-            <linearGradient id="pvShieldGradient" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#025259" />
-              <stop offset="0.4" stopColor="#0FA4AF" />
-              <stop offset="0.8" stopColor="#38BDF8" />
-              <stop offset="1" stopColor="#FF947A" />
-            </linearGradient>
-
-            <linearGradient id="pvCoreGradient" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#FF947A" />
-              <stop offset="1" stopColor="#0FA4AF" />
-            </linearGradient>
-
-            <filter id="pvGlowEffect" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3.5" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-
-          {/* Outer Cyber Shield Base */}
-          <path
-            d="M50 6 L88 22 V48 C88 72 70 89 50 95 C30 89 12 72 12 48 V22 L50 6 Z"
-            fill="url(#pvShieldGradient)"
-            fillOpacity="0.18"
-            stroke="url(#pvShieldGradient)"
-            strokeWidth="3.5"
-            strokeLinejoin="round"
-            filter="url(#pvGlowEffect)"
-          />
-
-          {/* Inner Hexagonal Circuit Ring */}
-          <polygon
-            points="50,18 78,32 78,64 50,78 22,64 22,32"
-            stroke="#0FA4AF"
-            strokeWidth="2"
-            strokeOpacity="0.6"
-            strokeDasharray="4 2"
+          {/* Shield Lock Vector */}
+          <svg
+            viewBox="0 0 24 24"
             fill="none"
-          />
-
-          {/* Interlocking Stylized 'P' & 'V' Vault Emblem */}
-          <path
-            d="M34 32 V68 M34 32 H50 C58 32 64 37 64 44 C64 51 58 56 50 56 H34"
-            stroke="url(#pvShieldGradient)"
-            strokeWidth="5.5"
+            stroke="currentColor"
+            strokeWidth="2.2"
             strokeLinecap="round"
             strokeLinejoin="round"
-          />
-
-          <path
-            d="M45 50 L56 68 L67 50"
-            stroke={accentColor}
-            strokeWidth="4.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* Center Encrypted Lock Node Core */}
-          <circle cx="56" cy="68" r="4.5" fill="#FFFFFF" className="animate-ping" opacity="0.75" />
-          <circle cx="56" cy="68" r="3.5" fill="url(#pvCoreGradient)" />
-        </svg>
+            className={`${sizePx.icon} text-white drop-shadow-md`}
+          >
+            {/* Outer Shield Path */}
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            {/* Inner Lock Shackle & Keyhole */}
+            <circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none" />
+            <path d="M12 12.5v3" strokeWidth="2.5" />
+          </svg>
+        </div>
       </div>
 
       {/* Brand Typography */}
       {variant !== 'icon' && (
         <div className="flex flex-col">
           <div className="flex items-center tracking-tight font-poppins">
-            <span className={`font-extrabold text-white tracking-wide ${sizePx.text}`}>Ping</span>
-            <span className={`font-bold bg-gradient-to-r from-pvAccent via-amber-300 to-pvTeal bg-clip-text text-transparent ml-1.5 ${sizePx.text}`}>
-              Vault
-            </span>
+            <span className={`font-extrabold text-white tracking-tight ${sizePx.text}`}>Ping</span>
+            <span className={`font-bold text-white ml-1.5 ${sizePx.text}`}>Vault</span>
           </div>
           {showTagline && (
-            <span className={`font-mono uppercase text-teal-300/80 tracking-widest ${sizePx.tagline}`}>
+            <span className={`font-mono uppercase text-teal-300/90 tracking-widest ${sizePx.tagline}`}>
               Zero-Knowledge E2EE
             </span>
           )}
@@ -119,4 +68,6 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     </div>
   );
 };
+
+
 
