@@ -1,5 +1,5 @@
 import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as GoogleStrategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { User } from '../models/User';
 import { ENV } from './env';
 import { CryptoServer } from '../security/cryptoServer';
@@ -12,7 +12,7 @@ if (ENV.GOOGLE_CLIENT_ID && ENV.GOOGLE_CLIENT_ID !== 'mock-google-client-id') {
         clientSecret: ENV.GOOGLE_CLIENT_SECRET,
         callbackURL: 'http://localhost:5000/api/v1/auth/google/callback',
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
         try {
           let user = await User.findOne({ googleId: profile.id });
 
@@ -44,7 +44,7 @@ if (ENV.GOOGLE_CLIENT_ID && ENV.GOOGLE_CLIENT_ID !== 'mock-google-client-id') {
           }
 
           return done(null, user);
-        } catch (err) {
+        } catch (err: any) {
           return done(err, undefined);
         }
       }
@@ -53,3 +53,4 @@ if (ENV.GOOGLE_CLIENT_ID && ENV.GOOGLE_CLIENT_ID !== 'mock-google-client-id') {
 }
 
 export default passport;
+
