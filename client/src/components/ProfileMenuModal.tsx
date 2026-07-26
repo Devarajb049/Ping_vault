@@ -45,7 +45,7 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({ isOpen, onCl
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="profile-modal-title"
+        aria-label="User Profile & Navigation Menu"
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md bg-pvDark/95 border border-pvAccent/40 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl space-y-6 relative overflow-hidden animate-slide-in cursor-default"
       >
@@ -59,7 +59,8 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({ isOpen, onCl
               {user?.fullName?.charAt(0) || 'U'}
             </div>
             <div>
-              <h3 id="profile-modal-title" className="font-poppins font-bold text-lg text-white leading-tight">{user?.fullName}</h3>
+              <h3 className="font-poppins font-bold text-lg text-white leading-tight">{user?.fullName}</h3>
+
 
               <div
                 onClick={copyReceiverId}
