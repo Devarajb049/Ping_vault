@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Upload, FolderLock, User } from 'lucide-react';
+import { Home, Upload, FolderLock, Send, User } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { ProfileMenuModal } from './ProfileMenuModal';
 
@@ -11,12 +11,14 @@ export const BottomNav: React.FC = () => {
   const navItems = [
     { to: '/dashboard', label: 'Home', icon: Home },
     { to: '/create', label: 'Upload', icon: Upload },
-    { to: '/received', label: 'Vault', icon: FolderLock },
+    { to: '/received', label: 'Received', icon: FolderLock },
+    { to: '/sent', label: 'Sent', icon: Send },
   ];
 
   return (
     <>
-      <nav className="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)] max-w-sm pointer-events-auto pb-[env(safe-area-inset-bottom,0px)] md:hidden">
+      <nav className="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.25rem)] sm:w-[calc(100%-2rem)] max-w-md pointer-events-auto pb-[env(safe-area-inset-bottom,0px)] md:hidden">
+
         <div className="flex items-center justify-between bg-pvDark/95 backdrop-blur-2xl border border-pvAccent/40 rounded-full px-3 py-1.5 sm:py-2 shadow-2xl shadow-pvAccent/20">
           {/* Navigation Items */}
           {navItems.map((item) => {
