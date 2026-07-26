@@ -113,7 +113,7 @@ export const LandingPage: React.FC = () => {
               <Send className="w-8 h-8 text-emerald-400 relative z-10 animate-bounce" />
             </div>
             <div className="text-base font-extrabold text-white">Receiver ID</div>
-            <div className="text-xs text-emerald-300/90 font-mono mt-1">PV-84FK2Q91</div>
+            <div className="text-xs text-emerald-300/90 font-mono mt-1">demo1002</div>
           </div>
         </div>
       </section>
@@ -133,7 +133,7 @@ export const LandingPage: React.FC = () => {
             </div>
             <h3 className="text-xl font-bold text-white">Receiver ID Sharing</h3>
             <p className="text-sm text-slate-300 leading-relaxed">
-              No need to expose email addresses. Send encrypted vaults directly to unique immutable IDs like <span className="font-mono text-pvAccent font-semibold">PV-84FK2Q91</span>.
+              No need to expose email addresses. Send encrypted vaults directly to unique immutable IDs like <span className="font-mono text-pvAccent font-semibold">demo1002</span>.
             </p>
           </div>
 

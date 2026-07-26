@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Send, FolderLock, ArrowRight, Key, Plus, RefreshCw } from 'lucide-react';
+import { Shield, Send, FolderLock, ArrowRight, Key, Plus, RefreshCw, Copy, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { getSocket } from '../socket/socket';
@@ -9,6 +9,15 @@ export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ receivedCount: 0, sentCount: 0 });
   const [refreshing, setRefreshing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyReceiverId = () => {
+    if (user?.receiverId) {
+      navigator.clipboard.writeText(user.receiverId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -66,10 +75,22 @@ export const DashboardPage: React.FC = () => {
               Welcome back, {user?.fullName}
             </h1>
 
-            <p className="text-sm text-slate-300 leading-relaxed font-inter">
-              Manage your encrypted notes, transmitted files, and multi-recipient pings. Your unique Public User ID is{' '}
-              <span className="font-mono text-pvAccent font-bold">{user?.receiverId}</span>.
-            </p>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300 font-inter">
+              <span>Your unique User ID:</span>
+              <button
+                type="button"
+                onClick={copyReceiverId}
+                className="inline-flex items-center space-x-2 bg-pvDarker/90 border border-pvAccent/50 hover:border-pvAccent px-3 py-1 rounded-xl transition-all shadow-inner group"
+                title="Click to copy your User ID"
+              >
+                <span className="font-mono text-sm font-extrabold text-pvAccent tracking-wide">{user?.receiverId}</span>
+                {copied ? (
+                  <Check className="w-4 h-4 text-pvSuccess animate-bounce" />
+                ) : (
+                  <Copy className="w-4 h-4 text-slate-400 group-hover:text-pvAccent transition-colors" />
+                )}
+              </button>
+            </div>
 
             <div className="pt-2 flex flex-wrap gap-4">
               <Link
@@ -81,6 +102,7 @@ export const DashboardPage: React.FC = () => {
               </Link>
             </div>
           </div>
+
 
           <button
             onClick={fetchDashboardData}

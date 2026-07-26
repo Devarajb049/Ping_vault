@@ -303,6 +303,9 @@ export const ReceivedVaultsPage: React.FC = () => {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pvDarker/90 backdrop-blur-md animate-fade-in"
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Vault Activity Details"
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-lg rounded-3xl glass-panel border border-pvAccent/40 bg-pvDark/95 p-6 md:p-8 space-y-6 shadow-2xl relative"
           >
@@ -395,6 +398,9 @@ export const ReceivedVaultsPage: React.FC = () => {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pvDarker/90 backdrop-blur-md animate-fade-in"
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Decrypted Vault Payload"
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-xl rounded-3xl glass-panel border border-pvAccent/40 bg-pvDark/95 p-6 md:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
           >
@@ -426,17 +432,21 @@ export const ReceivedVaultsPage: React.FC = () => {
                 }}
                 className="space-y-4"
               >
-                <div className="text-xs text-slate-300">
+                <label htmlFor="unlock-vault-password" className="block text-xs text-slate-300">
                   This vault requires a secondary master password set by the sender:
-                </div>
+                </label>
                 <input
+                  id="unlock-vault-password"
+                  name="vaultPassword"
                   type="password"
                   required
+                  autoComplete="current-password"
                   value={inputPassword}
                   onChange={(e) => setInputPassword(e.target.value)}
                   placeholder="Enter vault password..."
                   className="w-full bg-pvDarker border border-pvAccent/30 focus:border-pvAccent rounded-xl p-3 text-sm text-white focus:outline-none"
                 />
+
                 <button
                   type="submit"
                   disabled={decrypting}
