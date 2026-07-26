@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, Lock, Send, Eye, FileText, CheckCircle2, ArrowRight, Zap, RefreshCw, Key } from 'lucide-react';
 import { MatrixBackground } from '../components/MatrixBackground';
+import { BrandLogo } from '../components/BrandLogo';
 
 export const LandingPage: React.FC = () => {
   return (
@@ -10,12 +11,7 @@ export const LandingPage: React.FC = () => {
 
       {/* Header / Nav */}
       <header className="relative z-10 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pvPrimary to-pvAccent flex items-center justify-center shadow-glow-primary">
-            <Shield className="w-6 h-6 text-white" />
-          </div>
-          <span className="font-poppins font-bold text-2xl tracking-tight text-white">Ping Vault</span>
-        </div>
+        <BrandLogo size="md" variant="full" />
         <div className="flex items-center space-x-4">
           <Link to="/login" className="px-5 py-2.5 rounded-xl font-semibold text-sm text-slate-300 hover:text-white hover:bg-pvAccent/10 transition-all">
             Sign In
@@ -25,6 +21,7 @@ export const LandingPage: React.FC = () => {
           </Link>
         </div>
       </header>
+
 
       {/* Hero Section */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-28 text-center">
