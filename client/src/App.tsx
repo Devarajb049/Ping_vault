@@ -22,18 +22,17 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
+import { PremiumLoader } from './components/PremiumLoader';
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) {
-    return (
-      <div className="min-h-dvh min-h-screen bg-pvDarker flex items-center justify-center text-pvAccent font-bold text-lg animate-pulse">
-        Initializing WebCrypto Zero-Knowledge Environment...
-      </div>
-    );
+    return <PremiumLoader progress={90} message="Initializing WebCrypto Zero-Knowledge Environment..." />;
   }
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
+
 
 export const App: React.FC = () => {
   const { user } = useAuth();
