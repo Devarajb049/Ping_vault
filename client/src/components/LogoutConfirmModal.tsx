@@ -20,6 +20,9 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pvDarker/90 backdrop-blur-md animate-fade-in cursor-pointer"
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="logout-modal-title"
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm rounded-3xl glass-panel border border-pvDanger/40 bg-pvDark/95 p-6 space-y-6 shadow-2xl text-center animate-slide-in cursor-default"
       >
@@ -28,7 +31,8 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
         </div>
 
         <div className="space-y-2">
-          <h3 className="font-poppins font-bold text-xl text-white">Logout?</h3>
+          <h3 id="logout-modal-title" className="font-poppins font-bold text-xl text-white">Logout?</h3>
+
           <p className="text-xs text-slate-300 leading-relaxed">
             Are you sure you want to log out of your encrypted PingVault session?
           </p>
