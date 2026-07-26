@@ -1,12 +1,14 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://your-backend-api.onrender.com/api/:path*"
+      "destination": "https://pingvault-server.onrender.com/api/:path*"
     },
     {
-      "source": "/:(.*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
 }
+
