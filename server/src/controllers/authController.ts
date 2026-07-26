@@ -167,8 +167,16 @@ export class AuthController {
         details: 'User logged in successfully',
       });
 
-      res.cookie('accessToken', accessToken, { httpOnly: true, secure: false, maxAge: 15 * 60 * 1000 });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 });
+      const isProduction = process.env.NODE_ENV === 'production';
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? ('none' as const) : ('lax' as const),
+      };
+
+      res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
+      res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
+
 
       res.json({
         success: true,

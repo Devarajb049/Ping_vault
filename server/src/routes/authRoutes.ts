@@ -46,14 +46,24 @@ router.get(
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
 
-      res.cookie('accessToken', accessToken, { httpOnly: true, secure: false, maxAge: 15 * 60 * 1000 });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 });
+      const isProduction = ENV.NODE_ENV === 'production';
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? ('none' as const) : ('lax' as const),
+      };
 
-      res.redirect(`${ENV.CLIENT_URL}/dashboard`);
-    } catch (err) {
+      res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
+      res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
+
+      console.log(`[Google OAuth] Success for User: ${user._id} (${user.email}). Redirecting to dashboard.`);
+      res.redirect(`${ENV.CLIENT_URL}/dashboard?token=${accessToken}&refreshToken=${refreshToken}`);
+    } catch (err: any) {
+      console.error(`[Google OAuth Error] Callback exception: ${err.message}`);
       res.redirect(`${ENV.CLIENT_URL}/login?error=token_failed`);
     }
   }
 );
+
 
 export default router;

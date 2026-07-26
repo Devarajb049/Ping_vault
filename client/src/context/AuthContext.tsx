@@ -27,6 +27,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Global Axios Interceptor to attach Bearer Token if available
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('pv_token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [privateKeyPEM, setPrivateKeyPEM] = useState<string | null>(null);
@@ -35,6 +44,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Handle token passed in URL query parameter from Google OAuth callback
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlToken = urlParams.get('token');
+        if (urlToken) {
+          localStorage.setItem('pv_token', urlToken);
+          // Clean token from URL bar without triggering page refresh
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         const res = await axios.get('/api/v1/auth/me');
         if (res.data.success) {
           setUser(res.data.data);
@@ -56,6 +74,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await axios.post('/api/v1/auth/login', { email, password: pass });
     if (res.data.success) {
       const u = res.data.data.user;
+      const token = res.data.data.tokens?.accessToken;
+      if (token) {
+        localStorage.setItem('pv_token', token);
+      }
       setUser(u);
       const savedPrivKey = localStorage.getItem(`pv_priv_${u.receiverId}`) || u.encryptedPrivateKey;
       setPrivateKeyPEM(savedPrivKey);
@@ -81,6 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (res.data.success) {
       const u = res.data.data.user;
+      const token = res.data.data.tokens?.accessToken;
+      if (token) {
+        localStorage.setItem('pv_token', token);
+      }
       setUser(u);
       setPrivateKeyPEM(privateKeyPEM);
       localStorage.setItem(`pv_priv_${u.receiverId}`, privateKeyPEM);
@@ -97,9 +123,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user?.receiverId) {
       localStorage.removeItem(`pv_priv_${user.receiverId}`);
     }
+    localStorage.removeItem('pv_token');
     setUser(null);
     setPrivateKeyPEM(null);
   };
+
 
   return (
     <AuthContext.Provider value={{ user, privateKeyPEM, loading, login, register, logout }}>
