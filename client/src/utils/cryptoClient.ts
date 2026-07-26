@@ -75,6 +75,9 @@ export class CryptoClient {
 
     for (const [receiverId, pubKeyPEM] of Object.entries(recipientMap)) {
       try {
+        if (!pubKeyPEM || pubKeyPEM.trim() === '') {
+          throw new Error(`Public key for receiver "${receiverId}" is missing or empty.`);
+        }
         const rsaPubKey = await this.importPublicKey(pubKeyPEM);
         const encryptedKeyBuffer = await window.crypto.subtle.encrypt(
           { name: 'RSA-OAEP' },
@@ -82,8 +85,9 @@ export class CryptoClient {
           exportedSymKey
         );
         encryptedSymmetricKeys[receiverId] = this.arrayBufferToBase64(encryptedKeyBuffer);
-      } catch (err) {
-        console.error(`Failed to encrypt key for receiver ${receiverId}`, err);
+      } catch (err: any) {
+        console.error(`[E2EE Encryption Error] Failed to encrypt key for receiver ${receiverId}:`, err);
+        throw new Error(`Failed to encrypt key for receiver "${receiverId}": ${err.message}`);
       }
     }
 
@@ -172,12 +176,27 @@ export class CryptoClient {
   }
 
   private static base64ToArrayBuffer(base64: string): ArrayBuffer {
-    const binaryString = window.atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    if (!base64 || typeof base64 !== 'string') {
+      throw new Error('Invalid Base64 payload: input is empty or not a string.');
     }
-    return bytes.buffer;
+
+    // Strip PEM headers, footers, newlines, carriage returns, and spaces before Base64 decoding
+    const cleanBase64 = base64
+      .replace(/-----BEGIN [A-Z0-9 ]+-----/gi, '')
+      .replace(/-----END [A-Z0-9 ]+-----/gi, '')
+      .replace(/[\r\n\s]/g, '');
+
+    try {
+      const binaryString = window.atob(cleanBase64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    } catch (err: any) {
+      throw new Error(`Failed to decode Base64 string: ${err.message}`);
+    }
   }
 }
+

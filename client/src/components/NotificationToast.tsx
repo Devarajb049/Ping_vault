@@ -124,7 +124,7 @@ export const NotificationToastContainer: React.FC = () => {
   return (
     <div
       aria-live="polite"
-      className="fixed top-20 right-4 sm:right-6 bottom-20 sm:bottom-auto left-1/2 sm:left-auto -translate-x-1/2 sm:translate-x-0 z-50 flex flex-col space-y-3 pointer-events-none max-w-[calc(100vw-2rem)] sm:max-w-sm"
+      className="fixed bottom-20 left-1/2 -translate-x-1/2 top-auto sm:top-20 sm:bottom-auto sm:right-6 sm:left-auto sm:translate-x-0 z-50 flex flex-col space-y-3 pointer-events-none max-w-[calc(100vw-2rem)] sm:max-w-sm"
     >
       {toasts.map((toast) => (
         <ToastSingle key={toast.id} toast={toast} />
@@ -132,3 +132,4 @@ export const NotificationToastContainer: React.FC = () => {
     </div>
   );
 };
+
