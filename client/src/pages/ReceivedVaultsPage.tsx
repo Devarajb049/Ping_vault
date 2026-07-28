@@ -2,15 +2,46 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { CryptoClient } from '../utils/cryptoClient';
-import { FolderLock, Key, FileText, Download, Lock, AlertTriangle, AlertCircle, ShieldCheck, RefreshCw, Copy, Check, Clock, Eye, Info, Trash2 } from 'lucide-react';
+import { PageTransition } from '../components/PageTransition';
+import { SkeletonLoader } from '../components/SkeletonLoader';
+import {
+  FolderLock,
+  Key,
+  FileText,
+  Download,
+  Lock,
+  AlertCircle,
+  RefreshCw,
+  Copy,
+  Check,
+  Clock,
+  Eye,
+  Trash2,
+  Search,
+  X,
+  ShieldCheck,
+  ExternalLink,
+} from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
+import { useLocation } from 'react-router-dom';
 
 export const ReceivedVaultsPage: React.FC = () => {
   const { user, privateKeyPEM } = useAuth();
   const { addToast } = useNotifications();
+  const location = useLocation();
+
   const [vaults, setVaults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
+
+  // Read URL query parameter if passed from Navbar search
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q');
+    if (q) setSearchQuery(q);
+  }, [location.search]);
 
   // Decryption Modal State
   const [selectedVault, setSelectedVault] = useState<any | null>(null);
@@ -20,20 +51,18 @@ export const ReceivedVaultsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [copiedNote, setCopiedNote] = useState(false);
 
-  // Received Vault Activity & Details Modal State
+  // Details Modal State
   const [detailsModalVault, setDetailsModalVault] = useState<any | null>(null);
 
   const formatDateTime = (dateStr?: string | Date) => {
-    if (!dateStr) return 'Never (Unlimited)';
+    if (!dateStr) return 'Unlimited';
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return 'N/A';
     return d.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      second: '2-digit',
       hour12: true,
     });
   };
@@ -75,7 +104,11 @@ export const ReceivedVaultsPage: React.FC = () => {
 
   const handleOpenVault = async (v: any) => {
     const now = new Date();
-    const isExpired = v.status === 'expired' || (v.expiryTime && new Date(v.expiryTime) < now) || (v.maxViews && v.viewsCount >= v.maxViews) || (v.deleteAfterReading && v.viewsCount >= 1);
+    const isExpired =
+      v.status === 'expired' ||
+      (v.expiryTime && new Date(v.expiryTime) < now) ||
+      (v.maxViews && v.viewsCount >= v.maxViews) ||
+      (v.deleteAfterReading && v.viewsCount >= 1);
 
     if (isExpired) {
       setDetailsModalVault(v);
@@ -105,21 +138,13 @@ export const ReceivedVaultsPage: React.FC = () => {
       if (res.data.success) {
         const { ciphertext, iv, encryptedSymmetricKey } = res.data.data;
 
-        // Comprehensive private key resolution fallback chain
         const activePrivKey =
           privateKeyPEM ||
           (user?.receiverId ? localStorage.getItem(`pv_priv_${user.receiverId}`) : null) ||
-          (user?.receiverId ? localStorage.getItem(`pv_priv_${user.receiverId.toLowerCase()}`) : null) ||
-          (user?.receiverId ? localStorage.getItem(`pv_priv_key_${user.receiverId}`) : null) ||
           user?.encryptedPrivateKey;
 
         if (!activePrivKey) {
-          throw new Error('Your RSA WebCrypto private key was not found. Please log out and sign in again to restore your key.');
-        }
-
-        // Save key locally to guarantee key persistence
-        if (user?.receiverId && activePrivKey) {
-          localStorage.setItem(`pv_priv_${user.receiverId}`, activePrivKey);
+          throw new Error('Your RSA private key was not found. Please re-login.');
         }
 
         const payload = await CryptoClient.decryptVault(
@@ -145,284 +170,218 @@ export const ReceivedVaultsPage: React.FC = () => {
     setTimeout(() => setCopiedNote(false), 2000);
   };
 
-  // Determine if payload is an actual binary file download vs text note
   const isActualFilePayload = (payload: string, metadata?: any) => {
     if (!payload) return false;
-    if (payload.startsWith('data:')) return true;
-    if (metadata && metadata.mimeType && metadata.mimeType !== 'text/plain') return true;
-    return false;
+    if (metadata && (metadata.originalNameEncrypted || metadata.mimeType)) return true;
+    return payload.startsWith('data:') && payload.includes(';base64,');
   };
 
+  const handleDownloadFile = (payload: string, metadata?: any) => {
+    try {
+      const fileName = metadata?.originalNameEncrypted || 'decrypted-payload.bin';
+      const link = document.createElement('a');
+      link.href = payload;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err: any) {
+      setError(`Download failed: ${err.message}`);
+    }
+  };
+
+  // Filter vaults by search & status
+  const filteredVaults = vaults.filter((v) => {
+    const matchSearch =
+      v.titleEncrypted?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.senderReceiverId?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const now = new Date();
+    const isExpired =
+      v.status === 'expired' ||
+      (v.expiryTime && new Date(v.expiryTime) < now) ||
+      (v.maxViews && v.viewsCount >= v.maxViews);
+
+    if (statusFilter === 'active') return matchSearch && !isExpired;
+    if (statusFilter === 'expired') return matchSearch && isExpired;
+    return matchSearch;
+  });
+
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 pb-24 md:pb-8 w-full overflow-x-hidden">
+    <PageTransition className="max-w-7xl mx-auto space-y-6 pb-24 md:pb-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-poppins text-2xl sm:text-3xl font-bold text-white mb-2">Received Encrypted Vaults</h1>
+          <h1 className="font-jakarta text-2xl sm:text-3xl font-extrabold text-white">
+            Received Vaults
+          </h1>
           <p className="text-xs sm:text-sm text-slate-400">
-            Zero-knowledge incoming files and notes transmitted to your User ID ({user?.receiverId}).
+            Incoming zero-knowledge encrypted vaults sent to your User ID ({user?.receiverId}).
           </p>
         </div>
 
         <button
           onClick={fetchReceivedVaults}
           disabled={refreshing}
-          className="px-4 py-2.5 rounded-xl font-bold text-xs bg-pvAccent/20 hover:bg-pvAccent/30 text-pvAccent border border-pvAccent/40 transition-all flex items-center space-x-2 self-start sm:self-center disabled:opacity-50"
+          className="px-4 py-2.5 rounded-2xl font-bold text-xs bg-pvPrimary/15 hover:bg-pvPrimary/25 text-pvPrimary border border-pvPrimary/30 transition-all flex items-center space-x-2 self-start sm:self-auto disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          <span>Refresh Feed</span>
+          <span>Refresh Inbox</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-        {vaults.map((v) => {
-          const now = new Date();
-          const isExpired = v.status === 'expired' || (v.expiryTime && new Date(v.expiryTime) < now) || (v.maxViews && v.viewsCount >= v.maxViews) || (v.deleteAfterReading && v.viewsCount >= 1);
+      {/* Filters & Search Toolbar */}
+      <div className="p-4 rounded-3xl glass-panel flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Filter title or Sender ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary text-slate-200 text-xs rounded-2xl pl-9 pr-4 py-2.5 outline-none transition-all"
+          />
+        </div>
 
-          return (
-            <div
-              key={v.sharedId}
-              onClick={() => setDetailsModalVault(v)}
-              className={`p-6 rounded-3xl glass-panel border transition-all space-y-6 flex flex-col justify-between shadow-xl cursor-pointer w-full overflow-hidden ${
-                isExpired
-                  ? 'border-pvDanger/40 bg-pvDanger/5 hover:border-pvDanger'
-                  : 'border-pvAccent/30 hover:border-pvAccent'
+        <div className="flex space-x-2 w-full md:w-auto">
+          {(['all', 'active', 'expired'] as const).map((st) => (
+            <button
+              key={st}
+              onClick={() => setStatusFilter(st)}
+              className={`px-4 py-2 rounded-xl font-bold text-xs capitalize transition-all ${
+                statusFilter === st
+                  ? 'bg-pvPrimary text-white shadow-md'
+                  : 'text-slate-400 hover:text-white bg-slate-950/60'
               }`}
             >
-              <div className="space-y-4 min-w-0">
-                <div className="flex items-center justify-between">
-                  <div className={`w-10 h-10 rounded-xl border flex items-center justify-center flex-shrink-0 ${isExpired ? 'bg-pvDanger/20 border-pvDanger/40 text-pvDanger' : 'bg-pvAccent/20 border-pvAccent/40 text-pvAccent'}`}>
-                    <FolderLock className="w-5 h-5" />
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                        isExpired
-                          ? 'bg-pvDanger/20 text-pvDanger border border-pvDanger/40 animate-pulse'
-                          : 'bg-pvSuccess/20 text-pvSuccess border border-pvSuccess/40'
-                      }`}
-                    >
-                      {isExpired ? 'EXPIRED' : 'ACTIVE'}
-                    </span>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteReceivedVault(v.sharedId);
-                      }}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-pvDanger hover:bg-pvDanger/10 transition-colors"
-                      title="Delete Vault from Inbox"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="min-w-0">
-                  <h3 className="font-poppins font-bold text-lg text-white break-words break-all min-w-0 max-w-full">
-                    {v.titleEncrypted || 'Encrypted Payload'}
-                  </h3>
-                  <div className="text-xs text-slate-400 mt-1 truncate">From: {v.sender?.fullName || 'Anonymous Sender'} ({v.sender?.receiverId})</div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-pvDarker/90 border border-pvAccent/20 space-y-2 text-xs font-mono text-slate-300">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Created:</span>
-                    <span className="text-slate-200 font-semibold">{formatDateTime(v.createdAt)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Expires:</span>
-                    <span className={isExpired ? 'text-pvDanger font-bold' : 'text-pvAccent font-semibold'}>
-                      {formatDateTime(v.expiryTime)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1 border-t border-pvAccent/10">
-                    <span className="text-slate-500">Views Used:</span>
-                    <span className={v.maxViews && v.viewsCount >= v.maxViews ? 'text-pvDanger font-bold' : 'text-white font-bold'}>
-                      {v.viewsCount} / {v.maxViews || '∞'}
-                    </span>
-                  </div>
-
-                  {v.isPasswordProtected && (
-                    <div className="text-pvWarning font-semibold flex items-center space-x-1 pt-1 border-t border-pvAccent/10">
-                      <Lock className="w-3.5 h-3.5" />
-                      <span>Password Protection Enabled</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenVault(v);
-                  }}
-                  className={`flex-1 py-3 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all ${
-                    isExpired
-                      ? 'bg-pvDanger/20 hover:bg-pvDanger/30 text-pvDanger border border-pvDanger/40'
-                      : 'bg-gradient-to-r from-pvPrimary to-pvAccent text-white shadow-glow-primary hover:opacity-90'
-                  }`}
-                >
-                  {isExpired ? <Info className="w-4 h-4" /> : <Key className="w-4 h-4" />}
-                  <span>{isExpired ? 'Expired Activity' : 'Decrypt Vault'}</span>
-                </button>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDetailsModalVault(v);
-                  }}
-                  className="px-3 py-3 rounded-xl bg-pvAccent/20 hover:bg-pvAccent/30 text-pvAccent border border-pvAccent/40 transition-colors flex items-center justify-center"
-                  title="View Activity & Details Modal"
-                >
-                  <Info className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+              {st}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {vaults.length === 0 && !loading && (
-        <div className="text-center py-16 p-8 rounded-3xl glass-panel text-slate-400 space-y-3">
-          <FolderLock className="w-12 h-12 text-slate-500 mx-auto" />
-          <div className="text-lg font-bold text-white">No Received Vaults</div>
-          <p className="text-sm max-w-sm mx-auto">
-            Share your User ID (<span className="text-pvAccent font-mono">{user?.receiverId}</span>) to receive encrypted payloads.
-          </p>
+      {/* Data Table / Cards */}
+      {loading ? (
+        <SkeletonLoader type="table" count={5} />
+      ) : filteredVaults.length === 0 ? (
+        <div className="p-12 rounded-3xl glass-panel text-center space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-slate-800/50 flex items-center justify-center text-slate-500 mx-auto">
+            <FolderLock className="w-8 h-8" />
+          </div>
+          <div>
+            <h3 className="font-bold text-base text-white">No Received Vaults Found</h3>
+            <p className="text-xs text-slate-400">Your inbox is empty or no vaults match the filter.</p>
+          </div>
         </div>
-      )}
+      ) : (
+        <div className="rounded-3xl glass-panel border border-slate-800 dark:border-white/10 overflow-hidden shadow-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800/80 bg-slate-950/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="p-4">Vault Title</th>
+                  <th className="p-4">Sender ID</th>
+                  <th className="p-4">Expiry</th>
+                  <th className="p-4">Views</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-xs text-slate-200">
+                {filteredVaults.map((v) => {
+                  const now = new Date();
+                  const isExpired =
+                    v.status === 'expired' ||
+                    (v.expiryTime && new Date(v.expiryTime) < now) ||
+                    (v.maxViews && v.viewsCount >= v.maxViews);
 
-      {/* Received Vault Activity & Details Modal */}
-      {detailsModalVault && (
-        <div
-          onClick={() => setDetailsModalVault(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pvDarker/90 backdrop-blur-md animate-fade-in"
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Vault Activity Details"
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg rounded-3xl glass-panel border border-pvAccent/40 bg-pvDark/95 p-6 md:p-8 space-y-6 shadow-2xl relative"
-          >
-            <div className="flex items-center justify-between border-b border-pvAccent/20 pb-4">
-              <div className="flex items-center space-x-3 min-w-0 pr-2">
-                <ShieldCheck className="w-6 h-6 text-pvAccent flex-shrink-0" />
-                <div className="min-w-0">
-                  <h3 className="font-poppins font-bold text-xl text-white truncate">Vault Activity Details</h3>
-                  <p className="text-xs text-slate-400">Cryptographic status and access policy details.</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setDetailsModalVault(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 flex-shrink-0"
-              >
-                ✕
-              </button>
-            </div>
+                  return (
+                    <tr
+                      key={v._id}
+                      className="hover:bg-slate-800/40 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                      onClick={() => handleOpenVault(v)}
+                    >
+                      <td className="p-4 font-bold text-white flex items-center space-x-2">
+                        {v.fileMetadata ? (
+                          <Download className="w-4 h-4 text-pvPrimary flex-shrink-0" />
+                        ) : (
+                          <FileText className="w-4 h-4 text-pvPurple flex-shrink-0" />
+                        )}
+                        <span className="truncate max-w-xs">{v.titleEncrypted || 'Encrypted Vault'}</span>
+                      </td>
 
-            <div className="space-y-4 font-mono text-xs w-full">
-              <div className="p-4 rounded-2xl bg-pvDarker border border-pvAccent/30 space-y-2 overflow-hidden">
-                <div className="font-poppins font-bold text-base text-white break-words break-all">{detailsModalVault.titleEncrypted || 'Encrypted Vault'}</div>
-                <div className="text-slate-400 truncate">From: {detailsModalVault.sender?.fullName || 'Sender'} ({detailsModalVault.sender?.receiverId})</div>
-                <div className="flex items-center space-x-2 pt-1">
-                  <span className="text-slate-400">Status:</span>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                      detailsModalVault.status === 'expired'
-                        ? 'bg-pvDanger/20 text-pvDanger border border-pvDanger/30'
-                        : 'bg-pvSuccess/20 text-pvSuccess border border-pvSuccess/30'
-                    }`}
-                  >
-                    {detailsModalVault.status}
-                  </span>
-                </div>
-              </div>
+                      <td className="p-4 font-mono text-pvPrimary font-semibold">
+                        {v.senderReceiverId}
+                      </td>
 
-              <div className="p-4 rounded-2xl bg-pvDarker border border-pvAccent/30 space-y-3 text-slate-300">
-                <div className="flex items-center justify-between border-b border-pvAccent/10 pb-2">
-                  <span className="text-slate-500 flex items-center space-x-1.5">
-                    <Clock className="w-3.5 h-3.5 text-pvAccent" />
-                    <span>Created Timestamp:</span>
-                  </span>
-                  <span className="text-white font-semibold">{formatDateTime(detailsModalVault.createdAt)}</span>
-                </div>
+                      <td className="p-4 text-slate-400">
+                        {formatDateTime(v.expiryTime)}
+                      </td>
 
-                <div className="flex items-center justify-between border-b border-pvAccent/10 pb-2">
-                  <span className="text-slate-500 flex items-center space-x-1.5">
-                    <Clock className="w-3.5 h-3.5 text-pvDanger" />
-                    <span>Expiration Time:</span>
-                  </span>
-                  <span className="text-pvAccent font-bold">{formatDateTime(detailsModalVault.expiryTime)}</span>
-                </div>
+                      <td className="p-4 font-mono">
+                        {v.viewsCount} / {v.maxViews || '∞'}
+                      </td>
 
-                <div className="flex items-center justify-between border-b border-pvAccent/10 pb-2">
-                  <span className="text-slate-500 flex items-center space-x-1.5">
-                    <Eye className="w-3.5 h-3.5 text-pvPurple" />
-                    <span>Views Recorded:</span>
-                  </span>
-                  <span className="text-white font-bold">
-                    {detailsModalVault.viewsCount} / {detailsModalVault.maxViews || '∞'} (Max Views: {detailsModalVault.maxViews || 'Unlimited'})
-                  </span>
-                </div>
-              </div>
-            </div>
+                      <td className="p-4">
+                        {isExpired ? (
+                          <span className="px-2.5 py-1 rounded-full bg-pvDanger/15 text-pvDanger border border-pvDanger/30 text-[10px] font-bold uppercase">
+                            Expired
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full bg-pvSuccess/15 text-pvSuccess border border-pvSuccess/30 text-[10px] font-bold uppercase">
+                            Active
+                          </span>
+                        )}
+                      </td>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleDeleteReceivedVault(detailsModalVault.sharedId)}
-                className="w-1/2 py-3 rounded-xl font-bold text-xs bg-pvDanger/20 hover:bg-pvDanger/30 text-pvDanger border border-pvDanger/40 transition-all flex items-center justify-center space-x-1.5"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Delete Vault</span>
-              </button>
-              <button
-                onClick={() => setDetailsModalVault(null)}
-                className="w-1/2 py-3 rounded-xl font-bold text-xs bg-pvAccent text-white hover:opacity-90 shadow-glow-primary transition-all"
-              >
-                Close Activity Modal
-              </button>
-            </div>
+                      <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end space-x-2">
+                          <button
+                            onClick={() => handleOpenVault(v)}
+                            className="px-3 py-1.5 rounded-xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all"
+                          >
+                            Decrypt
+                          </button>
+                          <button
+                            onClick={() => handleDeleteReceivedVault(v.sharedId)}
+                            className="p-1.5 rounded-xl text-slate-400 hover:text-pvDanger hover:bg-pvDanger/10 transition-colors"
+                            title="Delete from Inbox"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
       {/* Decryption Modal */}
       {selectedVault && (
-        <div
-          onClick={() => setSelectedVault(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pvDarker/90 backdrop-blur-md animate-fade-in"
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Decrypted Vault Payload"
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xl rounded-3xl glass-panel border border-pvAccent/40 bg-pvDark/95 p-6 md:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
-          >
-            <div className="flex items-center justify-between border-b border-pvAccent/20 pb-4">
-              <div className="flex items-center space-x-3">
-                <ShieldCheck className="w-6 h-6 text-pvSuccess" />
-                <h3 className="font-poppins font-bold text-xl text-white">Decrypted Vault Payload</h3>
+            onClick={() => setSelectedVault(null)}
+            className="absolute inset-0 bg-slate-950/70 backdrop-blur-md"
+          />
+
+          <div className="relative w-full max-w-lg bg-slate-900 dark:bg-pvBg border border-slate-800 dark:border-white/10 rounded-3xl p-6 shadow-2xl space-y-5 text-slate-100 z-10">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center space-x-2">
+                <Key className="w-5 h-5 text-pvPrimary" />
+                <h3 className="font-bold text-base text-white">
+                  Decrypt: {selectedVault.titleEncrypted}
+                </h3>
               </div>
               <button
                 onClick={() => setSelectedVault(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
-
-            {error && (
-              <div className="p-3.5 rounded-xl bg-pvDanger/10 border border-pvDanger/30 text-pvDanger text-xs flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
 
             {selectedVault.isPasswordProtected && !decryptedContent && (
               <form
@@ -432,84 +391,88 @@ export const ReceivedVaultsPage: React.FC = () => {
                 }}
                 className="space-y-4"
               >
-                <label htmlFor="unlock-vault-password" className="block text-xs text-slate-300">
-                  This vault requires a secondary master password set by the sender:
-                </label>
-                <input
-                  id="unlock-vault-password"
-                  name="vaultPassword"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  value={inputPassword}
-                  onChange={(e) => setInputPassword(e.target.value)}
-                  placeholder="Enter vault password..."
-                  className="w-full bg-pvDarker border border-pvAccent/30 focus:border-pvAccent rounded-xl p-3 text-sm text-white focus:outline-none"
-                />
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center space-x-2">
+                  <Lock className="w-4 h-4 flex-shrink-0" />
+                  <span>This vault is protected with a secondary password passphrase.</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-2">
+                    Enter Vault Passphrase
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={inputPassword}
+                    onChange={(e) => setInputPassword(e.target.value)}
+                    placeholder="Enter secondary password"
+                    className="w-full bg-slate-950/80 border border-slate-800 rounded-2xl px-4 py-3 text-xs text-white outline-none focus:border-pvPrimary"
+                  />
+                </div>
 
                 <button
                   type="submit"
                   disabled={decrypting}
-                  className="w-full py-3 rounded-xl font-bold text-sm bg-pvAccent text-white shadow-glow-primary hover:opacity-90 transition-all disabled:opacity-50"
+                  className="w-full py-3 rounded-2xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90"
                 >
-                  {decrypting ? 'Decrypting...' : 'Unlock Vault'}
+                  {decrypting ? 'Decrypting...' : 'Unlock & Decrypt'}
                 </button>
               </form>
             )}
 
+            {error && (
+              <div className="p-3.5 rounded-2xl bg-pvDanger/10 border border-pvDanger/30 text-pvDanger text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Decrypted Content View */}
             {decryptedContent && (
               <div className="space-y-4">
-                <div className="text-xs text-pvSuccess font-bold uppercase tracking-wider flex items-center space-x-2">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Decryption Successful (Zero-Knowledge Verified)</span>
+                <div className="p-3 rounded-2xl bg-pvSuccess/10 border border-pvSuccess/30 text-pvSuccess text-xs flex items-center justify-between">
+                  <span className="flex items-center space-x-1.5 font-bold">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Payload Decrypted via Browser WebCrypto RSA</span>
+                  </span>
                 </div>
 
                 {isActualFilePayload(decryptedContent, selectedVault.fileMetadata) ? (
-                  /* FILE PAYLOAD DISPLAY & DOWNLOAD */
-                  <div className="p-5 rounded-2xl bg-pvDarker border border-pvAccent/40 space-y-4 shadow-inner">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-xl bg-pvAccent/20 border border-pvAccent/40 flex items-center justify-center text-pvAccent">
-                        <FileText className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-white">
-                          {selectedVault.fileMetadata?.originalNameEncrypted || 'Decrypted File'}
-                        </div>
-                        <div className="text-xs text-slate-400 font-mono">
-                          {selectedVault.fileMetadata?.mimeType || 'Binary Data'}
-                          {selectedVault.fileMetadata?.size
-                            ? ` — ${(selectedVault.fileMetadata.size / (1024 * 1024)).toFixed(2)} MB`
-                            : ''}
-                        </div>
-                      </div>
+                  <div className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 text-center space-y-4">
+                    <Download className="w-10 h-10 text-pvPrimary mx-auto animate-bounce" />
+                    <div>
+                      <h4 className="font-bold text-sm text-white">
+                        {selectedVault.fileMetadata?.originalNameEncrypted || 'Decrypted File Payload'}
+                      </h4>
+                      <p className="text-xs text-slate-400 font-mono mt-1">
+                        Ready for instant local browser save
+                      </p>
                     </div>
-
-                    <a
-                      href={decryptedContent}
-                      download={selectedVault.fileMetadata?.originalNameEncrypted || 'decrypted_file'}
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-pvPrimary to-pvAccent text-white text-xs font-bold hover:opacity-90 shadow-glow-primary transition-all flex items-center justify-center space-x-2"
+                    <button
+                      onClick={() =>
+                        handleDownloadFile(decryptedContent, selectedVault.fileMetadata)
+                      }
+                      className="px-6 py-3 rounded-2xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 flex items-center justify-center space-x-2 mx-auto"
                     >
                       <Download className="w-4 h-4" />
-                      <span>Download Decrypted File</span>
-                    </a>
+                      <span>Download File</span>
+                    </button>
                   </div>
                 ) : (
-                  /* TEXT / NOTE PAYLOAD DISPLAY DIRECTLY */
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Decrypted Note</span>
+                      <label className="text-xs font-bold text-slate-300">Decrypted Note Content</label>
                       <button
                         onClick={() => copyNoteToClipboard(decryptedContent)}
-                        className="px-3 py-1 rounded-lg bg-pvAccent/20 hover:bg-pvAccent/30 text-pvAccent text-xs font-bold flex items-center space-x-1.5 transition-colors"
+                        className="text-xs font-bold text-pvPrimary hover:underline flex items-center space-x-1"
                       >
                         {copiedNote ? <Check className="w-3.5 h-3.5 text-pvSuccess" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>{copiedNote ? 'Copied' : 'Copy Note'}</span>
+                        <span>{copiedNote ? 'Copied' : 'Copy Text'}</span>
                       </button>
                     </div>
-
-                    <div className="p-5 rounded-2xl bg-pvDarker border border-pvAccent/40 text-sm font-mono text-white whitespace-pre-wrap max-h-96 overflow-y-auto leading-relaxed shadow-inner border-l-4 border-l-pvAccent">
+                    <pre className="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 font-mono text-xs text-slate-200 overflow-x-auto max-h-60 whitespace-pre-wrap break-all">
                       {decryptedContent}
-                    </div>
+                    </pre>
                   </div>
                 )}
               </div>
@@ -517,6 +480,6 @@ export const ReceivedVaultsPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 };

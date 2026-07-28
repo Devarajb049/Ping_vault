@@ -1,158 +1,182 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNotifications } from '../context/NotificationContext';
-import { Bell, X, CheckCheck, Trash2, Mail, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { X, Bell, CheckCheck, Trash2, ShieldAlert, FolderLock, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const NotificationDrawer: React.FC = () => {
   const {
     notifications,
+    unreadCount,
     isDrawerOpen,
     setIsDrawerOpen,
     markAsRead,
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
-  const navigate = useNavigate();
-  const [filter, setFilter] = useState<'all' | 'unread' | 'shared' | 'system'>('all');
 
-  // Handle ESC key press to close drawer
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isDrawerOpen) {
-        setIsDrawerOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isDrawerOpen, setIsDrawerOpen]);
+  const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
 
   if (!isDrawerOpen) return null;
 
-  const filtered = notifications.filter((n) => {
-    if (filter === 'unread') return !n.isRead;
-    if (filter === 'shared') return n.type === 'VAULT_RECEIVED' || n.type === 'VAULT_OPENED';
-    if (filter === 'system') return n.type === 'SECURITY_ALERT' || n.type === 'VAULT_EXPIRED';
-    return true;
-  });
+  const filtered = notifications.filter((n) => (activeTab === 'unread' ? !n.isRead : true));
+
+  const formatTime = (isoString: string) => {
+    try {
+      const date = new Date(isoString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      return date.toLocaleDateString();
+    } catch {
+      return '';
+    }
+  };
 
   return (
-    <div
-      onClick={() => setIsDrawerOpen(false)}
-      className="fixed inset-0 z-50 flex justify-end bg-pvDarker/70 backdrop-blur-sm animate-fade-in cursor-pointer"
-    >
+    <div className="fixed inset-0 z-50 overflow-hidden">
+      {/* Backdrop */}
       <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md h-full bg-pvDark/95 border-l border-pvAccent/30 p-6 flex flex-col justify-between shadow-2xl space-y-6 relative overflow-hidden cursor-default"
-      >
-        {/* Drawer Header */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-pvAccent/20 border border-pvAccent/40 flex items-center justify-center text-pvAccent">
-                <Bell className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-poppins font-bold text-xl text-white">Notifications</h3>
-                <p className="text-xs text-slate-400">Real-time Ping alerts & activity history</p>
-              </div>
+        onClick={() => setIsDrawerOpen(false)}
+        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
+      />
+
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+        <div className="w-screen max-w-md bg-slate-900 dark:bg-pvBg border-l border-slate-800 dark:border-white/10 shadow-2xl flex flex-col justify-between">
+          {/* Header */}
+          <div className="p-5 border-b border-slate-800 dark:border-white/10 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Bell className="w-5 h-5 text-pvPrimary" />
+              <h2 className="font-bold text-lg text-slate-100 dark:text-white">Notifications</h2>
+              {unreadCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-pvPrimary/20 text-pvPrimary text-xs font-bold border border-pvPrimary/30">
+                  {unreadCount} new
+                </span>
+              )}
             </div>
 
             <button
               onClick={() => setIsDrawerOpen(false)}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
-              title="Close Notifications"
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Action Bar */}
-          <div className="flex items-center justify-between text-xs font-semibold pt-2 border-t border-pvAccent/20">
-            <button
-              onClick={markAllAsRead}
-              className="text-pvAccent hover:underline flex items-center space-x-1"
-            >
-              <CheckCheck className="w-4 h-4" />
-              <span>Mark all as read</span>
-            </button>
-          </div>
-
-          {/* Filter Tabs */}
-          <div className="flex space-x-2 border-b border-pvAccent/20 pb-2">
-            {(['all', 'unread', 'shared', 'system'] as const).map((tab) => (
+          {/* Controls Bar */}
+          <div className="px-5 py-3 bg-slate-950/50 border-b border-slate-800/80 flex items-center justify-between">
+            <div className="flex space-x-2">
               <button
-                key={tab}
-                onClick={() => setFilter(tab)}
-                className={`px-3 py-1 rounded-xl text-xs font-bold capitalize transition-all ${
-                  filter === tab
-                    ? 'bg-pvAccent/20 text-pvAccent border border-pvAccent/40'
-                    : 'text-slate-400 hover:text-white'
+                onClick={() => setActiveTab('all')}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  activeTab === 'all'
+                    ? 'bg-pvPrimary text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {tab}
+                All ({notifications.length})
               </button>
-            ))}
+              <button
+                onClick={() => setActiveTab('unread')}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  activeTab === 'unread'
+                    ? 'bg-pvPrimary text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Unread ({unreadCount})
+              </button>
+            </div>
+
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="text-xs font-medium text-pvPrimary hover:underline flex items-center space-x-1"
+              >
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span>Mark all read</span>
+              </button>
+            )}
           </div>
-        </div>
 
-        {/* Notification Cards List */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-          {filtered.map((n) => (
-            <div
-              key={n._id}
-              onClick={() => markAsRead(n._id)}
-              className={`p-4 rounded-2xl border transition-all space-y-2 relative cursor-pointer ${
-                !n.isRead
-                  ? 'bg-pvAccent/10 border-pvAccent/40 shadow-glow-primary'
-                  : 'bg-pvDarker/80 border-pvAccent/20 opacity-80'
-              }`}
-            >
-              {!n.isRead && (
-                <div className="w-2 h-2 rounded-full bg-pvDanger absolute top-3 right-3 animate-ping" />
-              )}
-
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  <Mail className="w-4 h-4 text-pvAccent" />
-                  <span className="text-xs font-bold text-white">{n.title}</span>
+          {/* List */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-3">
+            {filtered.length === 0 ? (
+              <div className="h-64 flex flex-col items-center justify-center text-center p-6 space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-slate-800/50 flex items-center justify-center text-slate-500">
+                  <Bell className="w-6 h-6" />
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteNotification(n._id);
-                  }}
-                  className="text-slate-500 hover:text-pvDanger p-1"
+                <p className="text-sm font-medium text-slate-400">No notifications to display</p>
+              </div>
+            ) : (
+              filtered.map((item) => (
+                <div
+                  key={item._id}
+                  className={`p-4 rounded-2xl border transition-all ${
+                    item.isRead
+                      ? 'bg-slate-950/40 border-slate-800/60 text-slate-400'
+                      : 'bg-slate-850 dark:bg-white/5 border-pvPrimary/30 text-slate-200 shadow-md'
+                  }`}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 rounded-xl bg-pvPrimary/15 border border-pvPrimary/30 flex items-center justify-center text-pvPrimary flex-shrink-0 mt-0.5">
+                        {item.type === 'SECURITY_ALERT' ? (
+                          <ShieldAlert className="w-4 h-4 text-pvDanger" />
+                        ) : (
+                          <FolderLock className="w-4 h-4" />
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold text-slate-100 dark:text-white leading-snug">
+                          {item.title}
+                        </h4>
+                        <p className="text-xs text-slate-400 leading-relaxed">{item.message}</p>
+                        <span className="text-[10px] text-slate-500 font-mono inline-block">
+                          {formatTime(item.createdAt)}
+                        </span>
+                      </div>
+                    </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed">{n.message}</p>
+                    <div className="flex items-center space-x-1">
+                      {!item.isRead && (
+                        <button
+                          onClick={() => markAsRead(item._id)}
+                          title="Mark as read"
+                          className="p-1 rounded-lg text-slate-400 hover:text-pvPrimary hover:bg-slate-800"
+                        >
+                          <CheckCheck className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteNotification(item._id)}
+                        title="Delete notification"
+                        className="p-1 rounded-lg text-slate-400 hover:text-pvDanger hover:bg-slate-800"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
 
-              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-                <span>{new Date(n.createdAt).toLocaleTimeString()}</span>
-                {n.vaultId && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsDrawerOpen(false);
-                      navigate('/received');
-                    }}
-                    className="text-pvAccent font-bold hover:underline flex items-center space-x-1"
-                  >
-                    <span>View Payload</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {filtered.length === 0 && (
-            <div className="text-center py-16 text-slate-500 text-sm italic">
-              No notifications found in this category.
-            </div>
-          )}
+                  {item.vaultId && (
+                    <div className="mt-3 pt-2 border-t border-slate-800/60 flex justify-end">
+                      <Link
+                        to="/received"
+                        onClick={() => setIsDrawerOpen(false)}
+                        className="text-[11px] font-bold text-pvPrimary hover:underline flex items-center space-x-1"
+                      >
+                        <span>View Vault Payload</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

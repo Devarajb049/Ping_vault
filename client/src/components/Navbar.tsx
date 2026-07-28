@@ -1,16 +1,29 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
+import { useTheme } from '../context/ThemeContext';
 import { BrandLogo } from './BrandLogo';
 import { LogoutConfirmModal } from './LogoutConfirmModal';
-import { Copy, Check, LogOut } from 'lucide-react';
+import { NotificationDrawer } from './NotificationDrawer';
+import { ProfileMenuModal } from './ProfileMenuModal';
+import { Copy, Check, Bell, Search, Sun, Moon, LogOut, ShieldCheck, Menu, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  sidebarOpen?: boolean;
+  setSidebarOpen?: (open: boolean) => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) => {
   const { user, logout } = useAuth();
+  const { unreadCount, isDrawerOpen, setIsDrawerOpen } = useNotifications();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const [copied, setCopied] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const copyReceiverId = () => {
     if (user?.receiverId) {
@@ -26,59 +39,139 @@ export const Navbar: React.FC = () => {
     navigate('/login');
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/received?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 h-16 border-b border-pvAccent/20 bg-pvDark/90 backdrop-blur-xl z-40 px-3 md:px-8 flex items-center justify-between shadow-lg">
-        {/* Brand Logo Component */}
-        <Link
-          to="/dashboard"
-          className="flex items-center space-x-2 sm:space-x-3 group flex-shrink-0"
-        >
-          <BrandLogo size="md" variant="full" />
-        </Link>
+      <header className="fixed top-0 left-0 right-0 h-16 border-b border-slate-800/60 dark:border-white/10 bg-slate-950/80 dark:bg-pvBg/80 backdrop-blur-2xl z-40 px-3 md:px-6 flex items-center justify-between transition-colors">
+        {/* Left Side: Sidebar Toggle & Brand */}
+        <div className="flex items-center space-x-3">
+          {user && setSidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors hidden md:flex"
+              title="Toggle Sidebar"
+            >
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          )}
 
-        {/* Receiver ID Pill & Profile */}
+          <Link to="/dashboard" className="flex items-center space-x-2 group">
+            <BrandLogo size="md" variant="full" />
+          </Link>
+        </div>
+
+        {/* Center: Search Bar (Desktop) */}
         {user && (
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* User ID Quick Copy */}
-            <div
+          <form
+            onSubmit={handleSearchSubmit}
+            className="hidden lg:flex items-center max-w-md w-full mx-6 relative"
+          >
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search encrypted vaults, recipients, titles..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-900/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary text-slate-200 text-xs rounded-xl pl-9 pr-4 py-2 outline-none transition-all placeholder:text-slate-500 shadow-inner"
+            />
+          </form>
+        )}
+
+        {/* Right Side: Actions & Profile */}
+        {user && (
+          <div className="flex items-center space-x-2.5">
+            {/* User ID Quick Copy Pill */}
+            <button
+              type="button"
               onClick={copyReceiverId}
               title="Click to copy your unique User ID"
-              className="flex items-center space-x-1.5 sm:space-x-2 bg-pvDarker/80 border border-pvAccent/40 hover:border-pvAccent px-2.5 sm:px-3 py-1.5 rounded-xl cursor-pointer transition-all shadow-inner group"
+              className="flex items-center space-x-1.5 bg-slate-900/90 dark:bg-white/5 border border-pvPrimary/40 hover:border-pvPrimary px-2.5 py-1.5 rounded-xl cursor-pointer transition-all shadow-inner group"
             >
-              <span className="text-xs text-slate-400 font-medium hidden sm:inline">User ID:</span>
-              <span className="font-mono text-xs sm:text-sm font-bold text-pvAccent tracking-wide">{user.receiverId}</span>
+              <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">ID:</span>
+              <span className="font-mono text-xs font-bold text-pvPrimary dark:text-pvSecondary tracking-wide">
+                {user.receiverId}
+              </span>
               {copied ? (
                 <Check className="w-3.5 h-3.5 text-pvSuccess animate-bounce" />
               ) : (
-                <Copy className="w-3.5 h-3.5 text-slate-400 group-hover:text-pvAccent transition-colors" />
+                <Copy className="w-3.5 h-3.5 text-slate-400 group-hover:text-pvPrimary transition-colors" />
+              )}
+            </button>
+
+            {/* Notification Drawer Trigger */}
+            <button
+              onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+              className="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/50 dark:hover:bg-white/10 transition-colors"
+              title="Notifications"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-pvDanger text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Light / Dark Mode Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/50 dark:hover:bg-white/10 transition-colors"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-5 h-5 text-amber-400" />
+              ) : (
+                <Moon className="w-5 h-5 text-slate-700" />
+              )}
+            </button>
+
+            {/* User Avatar & Dropdown */}
+            <div className="relative border-l border-slate-800 dark:border-white/10 pl-2.5">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex items-center space-x-2 p-1 rounded-xl hover:bg-slate-800/50 dark:hover:bg-white/10 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-pvPrimary to-pvSecondary text-white flex items-center justify-center font-bold text-sm shadow-md">
+                  {user.fullName.charAt(0).toUpperCase()}
+                </div>
+                <span className="hidden md:inline text-xs font-semibold text-slate-200">
+                  {user.fullName}
+                </span>
+              </button>
+
+              {/* Profile Dropdown Menu */}
+              {showProfileMenu && (
+                <ProfileMenuModal
+                  isOpen={showProfileMenu}
+                  onClose={() => setShowProfileMenu(false)}
+                  onLogoutTrigger={() => {
+                    setShowProfileMenu(false);
+                    setShowLogoutConfirm(true);
+                  }}
+                />
               )}
             </div>
 
-            {/* Profile & Desktop Logout */}
-            <div className="flex items-center space-x-2 border-l border-pvAccent/20 pl-2 sm:pl-3">
-              <Link
-                to="/profile"
-                className="flex items-center space-x-2 p-1 rounded-lg hover:bg-pvAccent/10 text-slate-300 hover:text-white transition-colors"
-              >
-                <div className="w-8 h-8 rounded-full bg-pvPrimary/60 border border-pvAccent/40 flex items-center justify-center font-bold text-sm text-pvAccent">
-                  {user.fullName.charAt(0)}
-                </div>
-                <span className="hidden md:inline text-sm font-medium">{user.fullName}</span>
-              </Link>
-
-              {/* Hide logout icon on mobile viewports (< 768px) where bottom nav profile sheet handles logout */}
-              <button
-                onClick={() => setShowLogoutConfirm(true)}
-                title="Sign Out"
-                className="hidden md:flex p-2 rounded-lg text-slate-400 hover:text-pvDanger hover:bg-pvDanger/10 transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
+            {/* Desktop Logout Quick Action */}
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              title="Sign Out"
+              className="hidden lg:flex p-2 rounded-xl text-slate-400 hover:text-pvDanger hover:bg-pvDanger/10 transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         )}
-      </nav>
+      </header>
+
+      {/* Notifications Slide-over Drawer */}
+      <NotificationDrawer />
 
       {/* Logout Confirmation Prompt Modal */}
       <LogoutConfirmModal

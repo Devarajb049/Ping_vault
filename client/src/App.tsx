@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
@@ -27,115 +28,131 @@ import { PremiumLoader } from './components/PremiumLoader';
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) {
-    return <PremiumLoader progress={90} message="Initializing WebCrypto Zero-Knowledge Environment..." />;
+    return <PremiumLoader progress={90} message="Initializing WebCrypto Zero-Knowledge Engine..." />;
   }
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
-
 export const App: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const isPublicPage = ['/', '/login', '/register'].includes(location.pathname);
 
   return (
-    <NotificationProvider>
-      <div className="min-h-dvh min-h-screen bg-pvDarker text-slate-100 flex flex-col font-inter selection:bg-pvAccent selection:text-white">
-        {/* Persistent Matrix Background */}
-        {!isPublicPage && <MatrixBackground />}
+    <ThemeProvider>
+      <NotificationProvider>
+        <div className="min-h-dvh min-h-screen bg-pvBg text-slate-100 dark:text-slate-100 flex flex-col font-sans selection:bg-pvPrimary selection:text-white transition-colors duration-300">
+          {/* Persistent Matrix Ambient Background */}
+          {!isPublicPage && <MatrixBackground />}
 
-        {!isPublicPage && <Navbar />}
+          {!isPublicPage && (
+            <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          )}
 
-        {/* Lightweight Real-time Toast Notification Container */}
-        <NotificationToastContainer />
+          {/* Real-time Toast Notification Container */}
+          <NotificationToastContainer />
 
-        <div className={`flex-1 flex relative z-10 ${!isPublicPage ? 'pt-16 pb-20 md:pb-0' : ''}`}>
-          {/* Desktop Left Sidebar (Fixed) */}
-          {!isPublicPage && user && <Sidebar />}
+          <div
+            className={`flex-1 flex relative z-10 ${
+              !isPublicPage ? 'pt-16 pb-20 md:pb-0' : ''
+            }`}
+          >
+            {/* Desktop Collapsible Left Sidebar */}
+            {!isPublicPage && user && <Sidebar collapsed={!sidebarOpen} />}
 
-          <main className={`flex-1 p-4 md:p-8 overflow-y-auto ${!isPublicPage && user ? 'md:ml-64' : ''}`}>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
+            <main
+              className={`flex-1 p-4 md:p-8 overflow-y-auto transition-all duration-300 ${
+                !isPublicPage && user
+                  ? sidebarOpen
+                    ? 'md:ml-64'
+                    : 'md:ml-20'
+                  : ''
+              }`}
+            >
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/create"
-                element={
-                  <ProtectedRoute>
-                    <CreateVaultPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/received"
-                element={
-                  <ProtectedRoute>
-                    <ReceivedVaultsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/sent"
-                element={
-                  <ProtectedRoute>
-                    <SentVaultsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/activity"
-                element={
-                  <ProtectedRoute>
-                    <ActivityPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminPanelPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </main>
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/create"
+                  element={
+                    <ProtectedRoute>
+                      <CreateVaultPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/received"
+                  element={
+                    <ProtectedRoute>
+                      <ReceivedVaultsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/sent"
+                  element={
+                    <ProtectedRoute>
+                      <SentVaultsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/activity"
+                  element={
+                    <ProtectedRoute>
+                      <ActivityPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminPanelPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </main>
+          </div>
+
+          {/* Floating Action Button */}
+          {!isPublicPage && user && <FloatingActionButton />}
+
+          {/* Mobile Bottom Navigation */}
+          {!isPublicPage && user && <BottomNav />}
         </div>
-
-        {/* Floating Action Plus Button */}
-        {!isPublicPage && user && <FloatingActionButton />}
-
-        {/* Mobile Floating Pill Navigation */}
-        {!isPublicPage && user && <BottomNav />}
-      </div>
-    </NotificationProvider>
+      </NotificationProvider>
+    </ThemeProvider>
   );
 };

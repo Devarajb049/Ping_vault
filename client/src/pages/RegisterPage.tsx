@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BrandLogo } from '../components/BrandLogo';
-import { Lock, User, Mail, KeyRound, AlertCircle, Copy, Check, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { PageTransition } from '../components/PageTransition';
+import { Lock, User, Mail, KeyRound, AlertCircle, Copy, Check, ArrowRight, Eye, EyeOff, Cpu, ShieldCheck } from 'lucide-react';
 import { MatrixBackground } from '../components/MatrixBackground';
 
 export const RegisterPage: React.FC = () => {
@@ -48,58 +49,60 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-dvh min-h-screen bg-pvDarker flex items-center justify-center p-4 md:p-8 overflow-hidden">
+    <PageTransition className="relative min-h-dvh min-h-screen bg-pvBg flex items-center justify-center p-4 md:p-8 overflow-hidden">
       <MatrixBackground />
 
-      <div className="relative z-10 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 rounded-3xl glass-panel border border-pvAccent/30 overflow-hidden shadow-2xl">
+      <div className="relative z-10 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 rounded-3xl glass-panel border border-slate-800 dark:border-white/10 overflow-hidden shadow-2xl">
         {/* Left Side Visual Banner */}
-        <div className="hidden md:flex flex-col justify-between p-10 bg-gradient-to-br from-pvPrimary/90 via-pvDark to-pvDarker border-r border-pvAccent/20">
+        <div className="hidden md:flex flex-col justify-between p-10 bg-gradient-to-br from-slate-900 via-pvBg to-slate-950 border-r border-slate-800 dark:border-white/10">
           <div>
             <BrandLogo size="lg" variant="full" />
           </div>
 
           <div className="space-y-6 my-auto">
-            <div className="w-16 h-16 rounded-2xl bg-pvAccent/20 border border-pvAccent/40 flex items-center justify-center text-pvAccent shadow-glow-primary">
-              <Lock className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-2xl bg-pvPrimary/20 border border-pvPrimary/40 flex items-center justify-center text-pvPrimary shadow-glow-primary">
+              <Cpu className="w-8 h-8 animate-pulse" />
             </div>
-            <h2 className="font-poppins text-3xl font-extrabold text-white leading-snug">
-              Zero-Knowledge Setup
+            <h2 className="font-jakarta text-3xl font-extrabold text-white leading-snug">
+              Zero-Knowledge RSA Key Setup
             </h2>
-            <p className="text-sm text-slate-300 leading-relaxed font-inter">
-              Generate your unique User ID and WebCrypto RSA keypair directly in your browser.
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Your browser generates a 2048-bit RSA keypair locally before sending the public key to our servers.
             </p>
           </div>
 
-          <div className="text-xs text-slate-400 font-mono">
-            Zero-Knowledge Cryptographic Platform
+          <div className="flex items-center space-x-2 text-xs text-pvSuccess font-mono">
+            <ShieldCheck className="w-4 h-4" />
+            <span>WebCrypto API Standard</span>
           </div>
         </div>
 
         {/* Right Side Form */}
-        <div className="p-8 md:p-10 flex flex-col justify-center bg-pvDark/95">
-          <div className="mb-6 md:hidden">
-            <BrandLogo size="md" variant="full" />
-          </div>
-
+        <div className="p-8 md:p-10 flex flex-col justify-center bg-slate-900/90 dark:bg-pvBg/90 backdrop-blur-2xl">
           {createdReceiverId ? (
             <div className="space-y-6 text-center py-4">
-              <div className="w-16 h-16 rounded-full bg-pvSuccess/20 border border-pvSuccess/40 flex items-center justify-center text-pvSuccess mx-auto animate-bounce">
+              <div className="w-16 h-16 rounded-3xl bg-pvSuccess/20 border border-pvSuccess/40 flex items-center justify-center text-pvSuccess mx-auto animate-bounce shadow-glow-success">
                 <Check className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="font-poppins text-2xl font-bold text-white mb-2">Account Created!</h3>
-                <p className="text-sm text-slate-300">
-                  Your unique zero-knowledge <span className="text-pvAccent font-semibold">User ID</span> has been generated.
+                <h3 className="font-jakarta text-2xl font-bold text-white mb-2">Account Created!</h3>
+                <p className="text-xs text-slate-300">
+                  Your unique zero-knowledge <span className="text-pvPrimary font-bold">User ID</span> has been generated.
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-pvDarker border border-pvAccent/40 space-y-2">
-                <div className="text-xs text-slate-400 font-semibold uppercase">Your User ID</div>
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 dark:border-white/10 space-y-2">
+                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                  Your Immutable User ID
+                </div>
                 <div className="flex items-center justify-center space-x-3">
-                  <span className="font-mono text-2xl font-extrabold text-pvAccent tracking-widest">{createdReceiverId}</span>
+                  <span className="font-mono text-2xl font-extrabold text-pvPrimary tracking-widest">
+                    {createdReceiverId}
+                  </span>
                   <button
                     onClick={copyReceiverId}
-                    className="p-2 rounded-xl bg-pvAccent/20 hover:bg-pvAccent/30 text-pvAccent transition-colors"
+                    className="p-2.5 rounded-xl bg-pvPrimary/20 hover:bg-pvPrimary/30 text-pvPrimary transition-colors"
+                    title="Copy User ID"
                   >
                     {copied ? <Check className="w-5 h-5 text-pvSuccess" /> : <Copy className="w-5 h-5" />}
                   </button>
@@ -108,7 +111,7 @@ export const RegisterPage: React.FC = () => {
 
               <button
                 onClick={() => navigate('/dashboard')}
-                className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-pvPrimary via-pvAccent to-pvTeal text-white shadow-glow-primary hover:opacity-90 transition-all flex items-center justify-center space-x-2"
+                className="w-full py-3.5 rounded-2xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all flex items-center justify-center space-x-2"
               >
                 <span>Continue to Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
@@ -117,12 +120,12 @@ export const RegisterPage: React.FC = () => {
           ) : (
             <>
               <div className="mb-6">
-                <h3 className="font-poppins text-2xl font-bold text-white mb-1">Create Account</h3>
-                <p className="text-xs text-slate-400">Generate your WebCrypto RSA keypair & User ID.</p>
+                <h3 className="font-jakarta text-2xl font-bold text-white mb-1">Create Account</h3>
+                <p className="text-xs text-slate-400">Generate your browser WebCrypto RSA keypair & User ID.</p>
               </div>
 
               {error && (
-                <div className="mb-4 p-3 rounded-xl bg-pvDanger/10 border border-pvDanger/30 text-pvDanger text-xs flex items-center space-x-2">
+                <div className="mb-4 p-3.5 rounded-2xl bg-pvDanger/10 border border-pvDanger/30 text-pvDanger text-xs flex items-center space-x-2">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -132,9 +135,9 @@ export const RegisterPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full mb-5 py-3 rounded-xl font-bold text-sm bg-pvDarker border border-pvAccent/30 hover:border-pvAccent text-slate-200 hover:text-white transition-all flex items-center justify-center space-x-3 shadow-sm"
+                className="w-full mb-4 py-3 rounded-2xl font-bold text-xs bg-slate-950/80 border border-slate-800 dark:border-white/10 hover:border-pvPrimary text-slate-200 hover:text-white transition-all flex items-center justify-center space-x-3 shadow-sm"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -155,20 +158,21 @@ export const RegisterPage: React.FC = () => {
                 <span>Continue with Google</span>
               </button>
 
-              <div className="relative mb-5 text-center">
+              <div className="relative mb-4 text-center">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-pvAccent/20"></div>
+                  <div className="w-full border-t border-slate-800"></div>
                 </div>
-                <span className="relative px-3 bg-pvDark text-xs font-semibold text-slate-500 uppercase">OR REGISTER WITH EMAIL</span>
+                <span className="relative px-3 bg-slate-900 dark:bg-pvBg text-[10px] font-mono font-semibold text-slate-500 uppercase">
+                  OR EMAIL REGISTER
+                </span>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="reg-fullname" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="reg-fullname" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Full Name
+                    </label>
                     <input
                       id="reg-fullname"
                       name="fullName"
@@ -178,54 +182,50 @@ export const RegisterPage: React.FC = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Alex Morgan"
-                      className="w-full bg-pvDarker/90 border border-pvAccent/30 focus:border-pvAccent rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-pvAccent transition-all"
+                      className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary rounded-2xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-pvPrimary/30 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="reg-username" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      Username
+                    </label>
+                    <input
+                      id="reg-username"
+                      name="username"
+                      type="text"
+                      required
+                      autoComplete="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="deva"
+                      className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary rounded-2xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-pvPrimary/30 transition-all"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="reg-username" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Username
+                  <label htmlFor="reg-email" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Email Address
                   </label>
                   <input
-                    id="reg-username"
-                    name="username"
-                    type="text"
+                    id="reg-email"
+                    name="email"
+                    type="email"
                     required
-                    autoComplete="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="deva"
-                    className="w-full bg-pvDarker/90 border border-pvAccent/30 focus:border-pvAccent rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-pvAccent transition-all"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="alex@company.com"
+                    className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary rounded-2xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-pvPrimary/30 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="reg-email" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                    <input
-                      id="reg-email"
-                      name="email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="alex@company.com"
-                      className="w-full bg-pvDarker/90 border border-pvAccent/30 focus:border-pvAccent rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-pvAccent transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="reg-password" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  <label htmlFor="reg-password" className="block text-xs font-semibold text-slate-300 mb-1.5">
                     Master Password
                   </label>
                   <div className="relative">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                     <input
                       id="reg-password"
                       name="password"
@@ -235,12 +235,12 @@ export const RegisterPage: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full bg-pvDarker/90 border border-pvAccent/30 focus:border-pvAccent rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-pvAccent transition-all"
+                      className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary rounded-2xl pl-3.5 pr-11 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-pvPrimary/30 transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3 text-slate-400 hover:text-white transition-colors"
+                      className="absolute right-3.5 top-2.5 text-slate-400 hover:text-white transition-colors"
                       title={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -248,11 +248,10 @@ export const RegisterPage: React.FC = () => {
                   </div>
                 </div>
 
-
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-pvPrimary via-pvAccent to-pvTeal text-white shadow-glow-primary hover:opacity-90 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 mt-2"
+                  className="w-full py-3.5 rounded-2xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 active:scale-[0.98] mt-2"
                 >
                   <span>{loading ? 'Generating RSA Keypair...' : 'Create Account & User ID'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -261,7 +260,7 @@ export const RegisterPage: React.FC = () => {
 
               <div className="mt-6 text-center text-xs text-slate-400">
                 Already have an account?{' '}
-                <Link to="/login" className="font-semibold text-pvAccent hover:underline">
+                <Link to="/login" className="font-bold text-pvPrimary hover:underline">
                   Sign In
                 </Link>
               </div>
@@ -269,6 +268,6 @@ export const RegisterPage: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };

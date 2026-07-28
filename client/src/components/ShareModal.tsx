@@ -1,80 +1,95 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
-import { X, Copy, Check, QrCode as QrIcon, Share2 } from 'lucide-react';
+import { X, Copy, Check, QrCode, Share2, Link as LinkIcon } from 'lucide-react';
 
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
-  vault: {
-    id: string;
-    titleEncrypted: string;
-    fileMetadata?: { size?: number; mimeType?: string };
-    expiryTime?: string;
-    maxViews?: number;
-  } | null;
+  vaultId: string;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, vault }) => {
-  const [qrUrl, setQrUrl] = useState<string>('');
+export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, vaultId }) => {
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
 
-  const shareLink = vault ? `${window.location.origin}/received?vaultId=${vault.id}` : '';
+  const shareUrl = `${window.location.origin}/received?vaultId=${vaultId}`;
 
   useEffect(() => {
-    if (vault && shareLink) {
-      QRCode.toDataURL(shareLink, { width: 250, margin: 2, color: { dark: '#0FA4AF', light: '#050D1A' } })
-        .then((url) => setQrUrl(url))
-        .catch((err) => console.error(err));
+    if (isOpen && vaultId) {
+      QRCode.toDataURL(shareUrl, { width: 200, margin: 2 }, (err, url) => {
+        if (!err) setQrCodeUrl(url);
+      });
     }
-  }, [vault, shareLink]);
+  }, [isOpen, vaultId, shareUrl]);
 
-  if (!isOpen || !vault) return null;
+  if (!isOpen) return null;
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(shareLink);
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pvDarker/90 backdrop-blur-md">
-      <div className="w-full max-w-md rounded-3xl glass-panel border border-pvAccent/40 bg-pvDark/95 p-6 space-y-6 relative shadow-2xl">
-        <button onClick={onClose} className="absolute top-6 right-6 text-slate-400 hover:text-white">
-          <X className="w-6 h-6" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity"
+      />
 
-        <div className="space-y-1">
-          <h3 className="font-poppins text-xl font-bold text-white flex items-center space-x-2">
-            <Share2 className="w-5 h-5 text-pvAccent" />
-            <span>Share Encrypted Vault</span>
-          </h3>
-          <p className="text-xs text-slate-400 font-semibold">{vault.titleEncrypted || 'Untitled Vault'}</p>
+      <div className="relative w-full max-w-md bg-slate-900 dark:bg-pvBg border border-slate-800 dark:border-white/10 rounded-3xl p-6 shadow-2xl space-y-6 text-slate-100 z-10 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800 dark:border-white/10">
+          <div className="flex items-center space-x-2">
+            <Share2 className="w-5 h-5 text-pvPrimary" />
+            <h3 className="font-bold text-lg text-slate-100 dark:text-white">Share Vault Access</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* QR Code Container */}
-        {qrUrl && (
-          <div className="p-4 rounded-2xl bg-pvDarker border border-pvAccent/30 text-center flex flex-col items-center justify-center">
-            <img src={qrUrl} alt="Vault QR Code" className="w-48 h-48 rounded-xl border border-pvAccent/30" />
-            <div className="text-xs text-slate-400 mt-2 font-mono">Scan QR Code to access</div>
+        {/* QR Code Display */}
+        {qrCodeUrl && (
+          <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+            <img src={qrCodeUrl} alt="Vault QR Code" className="w-44 h-44 rounded-lg shadow-sm" />
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">
+              Scan with mobile camera to access vault
+            </span>
           </div>
         )}
 
-        {/* Copy Link Input */}
+        {/* Copy Shareable Link */}
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-300 uppercase">Direct Share Link</label>
-          <div className="flex gap-2">
+          <label className="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
+            <LinkIcon className="w-3.5 h-3.5 text-pvPrimary" />
+            <span>Vault Access Link</span>
+          </label>
+          <div className="flex items-center space-x-2">
             <input
               type="text"
               readOnly
-              value={shareLink}
-              className="flex-1 bg-pvDarker border border-pvAccent/30 rounded-xl px-3 py-2 text-xs font-mono text-pvAccent select-all"
+              value={shareUrl}
+              className="flex-1 bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 text-slate-300 font-mono text-xs rounded-xl px-3 py-2.5 outline-none select-all"
             />
             <button
-              onClick={copyLink}
-              className="px-4 py-2 rounded-xl bg-pvAccent/20 hover:bg-pvAccent/30 text-pvAccent font-bold text-xs flex items-center space-x-1.5 transition-colors"
+              onClick={copyShareLink}
+              className="px-4 py-2.5 rounded-xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all flex items-center space-x-1.5"
             >
-              {copied ? <Check className="w-4 h-4 text-pvSuccess" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? 'Copied' : 'Copy'}</span>
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-white" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copy</span>
+                </>
+              )}
             </button>
           </div>
         </div>

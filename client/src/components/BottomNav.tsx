@@ -1,72 +1,63 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Upload, FolderLock, Send, User } from 'lucide-react';
-import { useNotifications } from '../context/NotificationContext';
-import { ProfileMenuModal } from './ProfileMenuModal';
+import {
+  LayoutDashboard,
+  FolderLock,
+  Share2,
+  Activity,
+  User,
+  PlusCircle,
+} from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
-  const { setIsDrawerOpen } = useNotifications();
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-
   const navItems = [
-    { to: '/dashboard', label: 'Home', icon: Home },
-    { to: '/create', label: 'Upload', icon: Upload },
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/received', label: 'Received', icon: FolderLock },
-    { to: '/sent', label: 'Sent', icon: Send },
+    { to: '/create', label: 'Send', icon: PlusCircle, isPrimary: true },
+    { to: '/sent', label: 'Sent', icon: Share2 },
+    { to: '/activity', label: 'Activity', icon: Activity },
   ];
 
   return (
-    <>
-      <nav className="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.25rem)] sm:w-[calc(100%-2rem)] max-w-md pointer-events-auto pb-[env(safe-area-inset-bottom,0px)] md:hidden">
-
-        <div className="flex items-center justify-between bg-pvDark/95 backdrop-blur-2xl border border-pvAccent/40 rounded-full px-3 py-1.5 sm:py-2 shadow-2xl shadow-pvAccent/20">
-          {/* Navigation Items */}
-          {navItems.map((item) => {
-            const Icon = item.icon;
+    <div className="fixed bottom-3 left-3 right-3 z-40 md:hidden">
+      <nav className="glass-panel bg-slate-950/90 dark:bg-pvBg/90 border border-slate-800/80 dark:border-white/10 rounded-2xl p-2 flex items-center justify-around shadow-2xl backdrop-blur-2xl">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          if (item.isPrimary) {
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
-                onClick={() => setIsDrawerOpen(false)}
                 className={({ isActive }) =>
-                  `flex-1 min-w-0 min-h-[48px] py-1 px-1 rounded-2xl flex flex-col items-center justify-center transition-all ${
-                    isActive
-                      ? 'bg-pvAccent/20 text-pvAccent scale-105 shadow-glow-primary font-bold'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  `flex flex-col items-center justify-center -mt-6 p-3 rounded-2xl bg-gradient-to-br from-pvPrimary to-pvSecondary text-white shadow-glow-primary transition-all active:scale-95 ${
+                    isActive ? 'ring-4 ring-pvPrimary/30' : ''
                   }`
                 }
               >
-                <Icon className="w-5 h-5 flex-shrink-0" />
-                <span className="text-[10px] sm:text-xs tracking-tight truncate w-full text-center leading-tight mt-0.5">
-                  {item.label}
-                </span>
+                <Icon className="w-6 h-6" />
+                <span className="sr-only">Send Vault</span>
               </NavLink>
             );
-          })}
+          }
 
-          {/* Profile Tab (Triggers Profile Menu Modal) */}
-          <button
-            onClick={() => {
-              setIsDrawerOpen(false);
-              setIsProfileMenuOpen(true);
-            }}
-            title="Profile & Menu"
-            className={`flex-1 min-w-0 min-h-[48px] py-1 px-1 rounded-2xl flex flex-col items-center justify-center transition-all ${
-              isProfileMenuOpen
-                ? 'bg-pvAccent/20 text-pvAccent scale-105 shadow-glow-primary font-bold'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <User className="w-5 h-5 flex-shrink-0" />
-            <span className="text-[10px] sm:text-xs tracking-tight truncate w-full text-center leading-tight mt-0.5">
-              Profile
-            </span>
-          </button>
-        </div>
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex flex-col items-center justify-center p-2 rounded-xl text-xs font-medium transition-all ${
+                  isActive
+                    ? 'text-pvPrimary font-bold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`
+              }
+            >
+              <Icon className="w-5 h-5 mb-0.5" />
+              <span className="text-[10px]">{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
-
-      {/* Profile Menu Bottom Sheet Modal */}
-      <ProfileMenuModal isOpen={isProfileMenuOpen} onClose={() => setIsProfileMenuOpen(false)} />
-    </>
+    </div>
   );
 };

@@ -3,7 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { CryptoClient } from '../utils/cryptoClient';
-import { Shield, FileText, Upload, Plus, X, Lock, Clock, Eye, EyeOff, AlertCircle, CheckCircle2, Send } from 'lucide-react';
+import { PageTransition } from '../components/PageTransition';
+import {
+  Shield,
+  FileText,
+  Upload,
+  Plus,
+  X,
+  Lock,
+  Clock,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle2,
+  Send,
+  UserPlus,
+  Trash2,
+  Sparkles,
+} from 'lucide-react';
 
 export const CreateVaultPage: React.FC = () => {
   const navigate = useNavigate();
@@ -193,16 +210,18 @@ export const CreateVaultPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-2 sm:p-4 md:p-8 space-y-6 sm:space-y-8 pb-24 md:pb-8 w-full overflow-x-hidden">
+    <PageTransition className="max-w-4xl mx-auto p-2 sm:p-4 md:p-8 space-y-6 sm:space-y-8 pb-24 md:pb-8 w-full overflow-x-hidden">
       <div>
-        <h1 className="font-poppins text-2xl sm:text-3xl font-bold text-white mb-2">Create & Upload Encrypted File</h1>
+        <h1 className="font-jakarta text-2xl sm:text-3xl font-extrabold text-white mb-2">
+          Create & Upload Encrypted Vault
+        </h1>
         <p className="text-xs sm:text-sm text-slate-400">
-          Transmit zero-knowledge encrypted notes and multi-format files directly to verified User IDs (e.g. {userPublicId}).
+          Transmit zero-knowledge encrypted notes and multi-format files directly to target User IDs (e.g. {userPublicId}).
         </p>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-pvDanger/10 border border-pvDanger/30 text-pvDanger text-xs sm:text-sm flex items-center space-x-3 shadow-md animate-fade-in">
+        <div className="p-4 rounded-2xl bg-pvDanger/10 border border-pvDanger/30 text-pvDanger text-xs sm:text-sm flex items-center space-x-3 shadow-md">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -210,32 +229,35 @@ export const CreateVaultPage: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 w-full">
         {/* Recipient User IDs Section */}
-        <div className="p-4 sm:p-6 rounded-2xl glass-panel border border-pvAccent/30 space-y-4 w-full">
+        <div className="p-5 sm:p-6 rounded-3xl glass-panel space-y-4 w-full">
           <label htmlFor="create-target-users" className="block text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-            1. Target User IDs (e.g. {userPublicId})
+            1. Target Recipient User IDs
           </label>
           <p className="text-xs text-slate-400">Enter recipient User IDs. Public key exchange occurs automatically.</p>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full">
-            <input
-              id="create-target-users"
-              name="targetUsers"
-              type="text"
-              value={receiverInput}
-              onChange={(e) => setReceiverInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddReceiver();
-                }
-              }}
-              placeholder={`e.g. ${userPublicId}`}
-              className="flex-1 bg-pvDarker border border-pvAccent/30 focus:border-pvAccent rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none font-mono w-full min-w-0"
-            />
+            <div className="relative flex-1">
+              <UserPlus className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+              <input
+                id="create-target-users"
+                name="targetUsers"
+                type="text"
+                value={receiverInput}
+                onChange={(e) => setReceiverInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddReceiver();
+                  }
+                }}
+                placeholder={`e.g. receiver1020`}
+                className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 outline-none font-mono focus:ring-2 focus:ring-pvPrimary/30 transition-all"
+              />
+            </div>
             <button
               type="button"
               onClick={handleAddReceiver}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-pvAccent/20 hover:bg-pvAccent/30 text-pvAccent border border-pvAccent/40 transition-colors flex items-center justify-center space-x-2 flex-shrink-0"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm bg-pvPrimary/20 hover:bg-pvPrimary/30 text-pvPrimary border border-pvPrimary/40 transition-colors flex items-center justify-center space-x-2 flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>Add Recipient</span>
@@ -244,335 +266,236 @@ export const CreateVaultPage: React.FC = () => {
 
           {receiverError && <p className="text-xs text-pvDanger font-bold animate-pulse">{receiverError}</p>}
 
-          {/* Chips list */}
+          {/* Recipient Chips List */}
           <div className="flex flex-wrap gap-2 pt-2">
             {recipientList.map((id) => (
               <span
                 key={id}
-                className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-pvAccent/10 border border-pvAccent/40 font-mono text-xs font-bold text-pvAccent shadow-sm"
+                className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-pvPrimary/15 border border-pvPrimary/40 text-pvPrimary font-mono text-xs font-bold"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-pvSuccess" />
                 <span>{id}</span>
-                <button type="button" onClick={() => removeReceiver(id)} className="text-slate-400 hover:text-pvDanger">
+                <button
+                  type="button"
+                  onClick={() => removeReceiver(id)}
+                  className="text-slate-400 hover:text-pvDanger transition-colors"
+                >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </span>
             ))}
-            {recipientList.length === 0 && <span className="text-xs text-slate-500 italic">No recipients added yet.</span>}
           </div>
         </div>
 
-        {/* Payload Content Tabs & Upload */}
-        <div className="p-4 sm:p-6 rounded-2xl glass-panel border border-pvAccent/30 space-y-6 w-full">
-          <label htmlFor="create-vault-title" className="block text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-            2. Vault Payload Content
-          </label>
+        {/* Vault Content Section */}
+        <div className="p-5 sm:p-6 rounded-3xl glass-panel space-y-5 w-full">
+          <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+            2. Vault Payload Details
+          </h3>
 
           <div>
-            <label htmlFor="create-vault-title" className="block text-xs font-semibold text-slate-300 mb-2">Vault Title (Encrypted)</label>
+            <label htmlFor="create-title" className="block text-xs font-semibold text-slate-300 mb-2">
+              Vault Title / Label
+            </label>
             <input
-              id="create-vault-title"
+              id="create-title"
               name="title"
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Q3 Confidential Financial Reports & Code"
-              className="w-full bg-pvDarker border border-pvAccent/30 focus:border-pvAccent rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none min-w-0"
+              placeholder="e.g. Confidential Financial Statement Q3"
+              className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary rounded-2xl px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-pvPrimary/30 transition-all"
             />
           </div>
 
-          {/* Tab Selector */}
-          <div className="flex border-b border-pvAccent/20 space-x-2 sm:space-x-4 overflow-x-auto pb-1">
+          {/* Segmented Control Tabs */}
+          <div className="flex rounded-2xl bg-slate-950/80 p-1 border border-slate-800">
             <button
               type="button"
               onClick={() => setActiveTab('text')}
-              className={`pb-2 sm:pb-3 text-xs sm:text-sm font-bold flex items-center space-x-2 border-b-2 transition-all whitespace-nowrap ${
+              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all ${
                 activeTab === 'text'
-                  ? 'border-pvAccent text-pvAccent'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'bg-pvPrimary text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               <FileText className="w-4 h-4" />
-              <span>Text / Note / Credentials</span>
+              <span>Encrypted Note</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('file')}
-              className={`pb-2 sm:pb-3 text-xs sm:text-sm font-bold flex items-center space-x-2 border-b-2 transition-all whitespace-nowrap ${
+              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all ${
                 activeTab === 'file'
-                  ? 'border-pvAccent text-pvAccent'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'bg-pvPrimary text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               <Upload className="w-4 h-4" />
-              <span>File Upload (PDF, ZIP, DOCX)</span>
+              <span>File Payload (Up to 50MB)</span>
             </button>
           </div>
 
           {activeTab === 'text' ? (
             <div>
-              <label htmlFor="create-vault-content" className="sr-only">Secret Note Content</label>
+              <label htmlFor="create-note-content" className="block text-xs font-semibold text-slate-300 mb-2">
+                Confidential Note Content
+              </label>
               <textarea
-                id="create-vault-content"
+                id="create-note-content"
                 name="textContent"
                 rows={6}
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
-                placeholder="Type confidential note, passwords, API keys, or secret content here..."
-                className="w-full bg-pvDarker border border-pvAccent/30 focus:border-pvAccent rounded-xl p-4 text-xs sm:text-sm font-mono text-white placeholder-slate-500 focus:outline-none min-w-0"
+                placeholder="Enter sensitive notes, API keys, seed phrases, or private communications..."
+                className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary rounded-2xl p-4 text-xs sm:text-sm text-white font-mono placeholder-slate-500 outline-none focus:ring-2 focus:ring-pvPrimary/30 transition-all"
               />
             </div>
           ) : (
-            <div className="border-2 border-dashed border-pvAccent/30 hover:border-pvAccent rounded-2xl p-6 sm:p-8 text-center bg-pvDarker/50 transition-colors cursor-pointer relative">
-              <input
-                type="file"
-                name="file"
-                onChange={(e) => handleFileSelect(e.target.files ? e.target.files[0] : null)}
-                className="hidden"
-                id="file-upload"
-              />
-              <label htmlFor="file-upload" className="cursor-pointer space-y-4 block">
-                <Upload className="w-10 h-10 sm:w-12 sm:h-12 text-pvAccent mx-auto animate-pulse" />
-                <div>
-                  <div className="text-xs sm:text-sm font-bold text-white mb-1">
-                    {file ? file.name : 'Click to select or Drag & Drop file'}
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold text-slate-300">File Attachment</label>
+              <div className="border-2 border-dashed border-slate-800 hover:border-pvPrimary rounded-3xl p-8 text-center bg-slate-950/60 transition-all cursor-pointer relative group">
+                <input
+                  type="file"
+                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-pvPrimary/15 border border-pvPrimary/30 flex items-center justify-center text-pvPrimary group-hover:scale-110 transition-transform">
+                    <Upload className="w-6 h-6" />
                   </div>
-                  {file && (
-                    <div className="text-xs text-pvTeal font-mono">
-                      Size: {(file.size / (1024 * 1024)).toFixed(2)} MB — Type: {file.type || 'Binary'}
-                    </div>
-                  )}
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-slate-200">
+                      {file ? file.name : 'Click or Drag & Drop File to Encrypt'}
+                    </p>
+                    <p className="text-[11px] text-slate-400 font-mono">
+                      {file
+                        ? `${(file.size / (1024 * 1024)).toFixed(2)} MB (${file.type || 'octet-stream'})`
+                        : 'Supports all file formats up to 50MB'}
+                    </p>
+                  </div>
                 </div>
-
-                <div className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                  Supported: <span className="text-slate-300 font-semibold">PDF, ZIP, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT, PNG, JPEG, MP4, MP3</span> (Max 50MB)
-                </div>
-              </label>
-
-              {file && (
-                <button
-                  type="button"
-                  onClick={() => setFile(null)}
-                  className="mt-4 px-3 py-1 rounded-lg bg-pvDanger/20 text-pvDanger hover:bg-pvDanger/30 text-xs font-bold transition-colors"
-                >
-                  Remove File
-                </button>
-              )}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Expiration Rules with Custom Time & Custom Views */}
-        <div className="p-4 sm:p-6 rounded-2xl glass-panel border border-pvAccent/30 space-y-6 w-full">
-          <label htmlFor="create-time-expiry" className="block text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-            3. Expiration Policies
-          </label>
+        {/* Security & Expiration Options */}
+        <div className="p-5 sm:p-6 rounded-3xl glass-panel space-y-5 w-full">
+          <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+            3. Protection & Expiration Rules
+          </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-            {/* Time Expiry */}
-            <div className="space-y-2 min-w-0 w-full">
-              <label htmlFor="create-time-expiry" className="block text-xs font-semibold text-slate-300 flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-pvAccent" />
-                <span>Time-Based Expiry</span>
-              </label>
-              <select
-                id="create-time-expiry"
-                name="expiryMinutes"
-                value={isCustomTime ? 'custom' : expiryMinutes}
-                onChange={(e) => {
-                  if (e.target.value === 'custom') {
-                    setIsCustomTime(true);
-                  } else {
-                    setIsCustomTime(false);
-                    setExpiryMinutes(Number(e.target.value));
-                  }
-                }}
-                className="w-full max-w-full bg-pvDarker border border-pvAccent/30 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none min-w-0"
-              >
-                <option value={10}>⏱ 10 Minutes</option>
-                <option value={30}>⏱ 30 Minutes</option>
-                <option value={60}>⏱ 1 Hour</option>
-                <option value={360}>⏱ 6 Hours</option>
-                <option value={720}>⏱ 12 Hours</option>
-                <option value={1440}>⏱ 1 Day (Default)</option>
-                <option value={10080}>⏱ 7 Days</option>
-                <option value={43200}>⏱ 30 Days</option>
-                <option value={-1}>∞ Never Expire</option>
-                <option value="custom">⚙ Custom Time Expiry...</option>
-              </select>
-
-              {/* Custom Time Input Controls */}
-              {isCustomTime && (
-                <div className="flex gap-2 pt-2 animate-fade-in w-full">
-                  <input
-                    id="create-custom-time-val"
-                    name="customTimeVal"
-                    type="number"
-                    min={1}
-                    value={customTimeValue}
-                    onChange={(e) => setCustomTimeValue(Math.max(1, Number(e.target.value)))}
-                    className="w-1/2 bg-pvDarker border border-pvAccent/40 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none min-w-0"
-                    placeholder="Enter duration"
-                  />
-                  <select
-                    id="create-custom-time-unit"
-                    name="customTimeUnit"
-                    value={customTimeUnit}
-                    onChange={(e) => setCustomTimeUnit(e.target.value as any)}
-                    className="w-1/2 bg-pvDarker border border-pvAccent/40 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none min-w-0"
-                  >
-                    <option value="minutes">Minutes</option>
-                    <option value="hours">Hours</option>
-                    <option value="days">Days</option>
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {/* View Limit */}
-            <div className="space-y-2 min-w-0 w-full">
-              <label htmlFor="create-view-limit" className="block text-xs font-semibold text-slate-300 flex items-center space-x-2">
-                <Eye className="w-4 h-4 text-pvPurple" />
-                <span>View-Based Limit</span>
-              </label>
-              <select
-                id="create-view-limit"
-                name="viewLimit"
-                value={isCustomViews ? 'custom' : maxViews || ''}
-                onChange={(e) => {
-                  if (e.target.value === 'custom') {
-                    setIsCustomViews(true);
-                  } else {
-                    setIsCustomViews(false);
-                    setMaxViews(e.target.value ? Number(e.target.value) : undefined);
-                  }
-                }}
-                className="w-full max-w-full bg-pvDarker border border-pvAccent/30 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none min-w-0"
-              >
-                <option value="">👁 Unlimited Views</option>
-                <option value={2}>👁 2 Views</option>
-                <option value={5}>👁 5 Views</option>
-                <option value={10}>👁 10 Views</option>
-                <option value={25}>👁 25 Views</option>
-                <option value="custom">⚙ Custom View Limit...</option>
-              </select>
-
-              {/* Custom Views Input Control */}
-              {isCustomViews && (
-                <div className="pt-2 animate-fade-in w-full">
-                  <input
-                    id="create-custom-views-val"
-                    name="customViewsVal"
-                    type="number"
-                    min={1}
-                    value={customViewsValue}
-                    onChange={(e) => setCustomViewsValue(Math.max(1, Number(e.target.value)))}
-                    className="w-full bg-pvDarker border border-pvAccent/40 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none min-w-0"
-                    placeholder="Enter maximum view limit count..."
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Password Protection & Self Destruct Toggle Switches with Distinct Borders */}
-          <div className="space-y-4 pt-4 border-t border-pvAccent/20 w-full">
-            {/* Password Toggle Switch */}
+          {/* Password Protection Toggle */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs sm:text-sm font-bold text-white flex items-center space-x-2">
-                  <Lock className="w-4 h-4 text-pvWarning" />
-                  <span>Optional Secondary Password</span>
-                </div>
-                <div className="text-[11px] sm:text-xs text-slate-400">Require additional password before decryption</div>
+              <div className="flex items-center space-x-2">
+                <Lock className="w-4 h-4 text-pvPrimary" />
+                <span className="text-xs font-bold text-slate-200">Secondary Password Lock</span>
               </div>
-
-              {/* Custom Pill Toggle Switch with Border & Glow */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={isPasswordProtected}
-                onClick={() => setIsPasswordProtected(!isPasswordProtected)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 transition-all duration-200 ease-in-out focus:outline-none ml-3 ${
-                  isPasswordProtected
-                    ? 'bg-pvAccent border-pvAccent shadow-glow-primary'
-                    : 'bg-pvDarker border-pvAccent/50 hover:border-pvAccent'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    isPasswordProtected ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
+              <input
+                type="checkbox"
+                checked={isPasswordProtected}
+                onChange={(e) => setIsPasswordProtected(e.target.checked)}
+                className="w-4 h-4 rounded text-pvPrimary bg-slate-900 border-slate-700 focus:ring-pvPrimary"
+              />
             </div>
 
             {isPasswordProtected && (
-              <div className="relative w-full">
-                <label htmlFor="create-secondary-password" className="sr-only">Secondary Vault Password</label>
+              <div className="relative pt-1">
                 <input
-                  id="create-secondary-password"
-                  name="vaultPassword"
                   type={showPassword ? 'text' : 'password'}
-                  required
-                  autoComplete="new-password"
                   value={vaultPassword}
                   onChange={(e) => setVaultPassword(e.target.value)}
-                  placeholder="Set secondary vault password..."
-                  className="w-full bg-pvDarker border border-pvAccent/30 rounded-xl pl-4 pr-11 py-2.5 text-xs sm:text-sm text-white focus:outline-none min-w-0"
+                  placeholder="Set secondary passphrase"
+                  className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-pvPrimary/30 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-3 text-slate-400 hover:text-white transition-colors"
-                  title={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3.5 top-3.5 text-slate-400 hover:text-white"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             )}
+          </div>
 
+          {/* Time Expiry Options */}
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
+              <Clock className="w-4 h-4 text-pvPrimary" />
+              <span>Time-based Expiration</span>
+            </label>
+            <select
+              value={isCustomTime ? 'custom' : expiryMinutes}
+              onChange={(e) => {
+                if (e.target.value === 'custom') {
+                  setIsCustomTime(true);
+                } else {
+                  setIsCustomTime(false);
+                  setExpiryMinutes(Number(e.target.value));
+                }
+              }}
+              className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 text-slate-200 text-xs rounded-2xl px-4 py-2.5 outline-none font-sans"
+            >
+              <option value={60}>1 Hour</option>
+              <option value={720}>12 Hours</option>
+              <option value={1440}>24 Hours (1 Day - Default)</option>
+              <option value={10080}>7 Days</option>
+              <option value={-1}>Never Expire (Keep Until Deleted)</option>
+              <option value="custom">Custom Time Limit...</option>
+            </select>
 
-            {/* Self Destruct Toggle Switch */}
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs sm:text-sm font-bold text-white">Self-Destruct (Delete After Reading)</div>
-                <div className="text-[11px] sm:text-xs text-slate-400">Destroy payload & encryption key immediately upon view</div>
-              </div>
-
-              {/* Custom Danger Pill Toggle Switch with Border */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={deleteAfterReading}
-                onClick={() => setDeleteAfterReading(!deleteAfterReading)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 transition-all duration-200 ease-in-out focus:outline-none ml-3 ${
-                  deleteAfterReading
-                    ? 'bg-pvDanger border-pvDanger shadow-sm'
-                    : 'bg-pvDarker border-pvAccent/50 hover:border-pvAccent'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    deleteAfterReading ? 'translate-x-5' : 'translate-x-0'
-                  }`}
+            {isCustomTime && (
+              <div className="flex gap-2 pt-2">
+                <input
+                  type="number"
+                  min={1}
+                  value={customTimeValue}
+                  onChange={(e) => setCustomTimeValue(Number(e.target.value))}
+                  className="w-24 bg-slate-950/80 border border-slate-800 text-white text-xs rounded-xl px-3 py-2 outline-none font-mono"
                 />
-              </button>
+                <select
+                  value={customTimeUnit}
+                  onChange={(e) => setCustomTimeUnit(e.target.value as any)}
+                  className="bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 outline-none"
+                >
+                  <option value="minutes">Minutes</option>
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          {/* Self Destruct Toggle */}
+          <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+            <div className="space-y-0.5">
+              <span className="text-xs font-bold text-pvDanger flex items-center space-x-1.5">
+                <Trash2 className="w-4 h-4" />
+                <span>Self-Destruct After Single Read</span>
+              </span>
+              <p className="text-[11px] text-slate-400">Vault automatically wipes after first successful decryption.</p>
             </div>
+            <input
+              type="checkbox"
+              checked={deleteAfterReading}
+              onChange={(e) => setDeleteAfterReading(e.target.checked)}
+              className="w-4 h-4 rounded text-pvDanger bg-slate-900 border-slate-700 focus:ring-pvDanger"
+            />
           </div>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3.5 sm:py-4 rounded-2xl font-bold text-sm sm:text-base bg-gradient-to-r from-pvPrimary via-pvAccent to-pvTeal text-white shadow-glow-primary hover:opacity-90 transition-all flex items-center justify-center space-x-3 disabled:opacity-50"
+          className="w-full py-4 rounded-3xl font-extrabold text-sm bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 active:scale-[0.98]"
         >
-          <Send className="w-5 h-5" />
-          <span>{loading ? 'Encrypting Payload & Transmitting...' : 'Encrypt & Transmit Vault'}</span>
+          <Send className="w-4 h-4" />
+          <span>{loading ? 'Encrypting & Transmitting Payload...' : 'Encrypt & Transmit Vault'}</span>
         </button>
       </form>
-    </div>
+    </PageTransition>
   );
 };

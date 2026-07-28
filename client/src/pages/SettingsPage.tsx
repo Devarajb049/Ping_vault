@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Copy, Check, Shield, Key } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { PageTransition } from '../components/PageTransition';
+import { User, Copy, Check, Shield, Key, Sun, Moon, Bell, Lock } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [copied, setCopied] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const copyReceiverId = () => {
     if (user?.receiverId) {
@@ -15,28 +19,34 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-8">
+    <PageTransition className="max-w-4xl mx-auto space-y-6 pb-24 md:pb-8">
       <div>
-        <h1 className="font-poppins text-3xl font-bold text-white mb-2">Account & Receiver Settings</h1>
-        <p className="text-sm text-slate-400">
-          Manage your Receiver ID profile, cryptographic key pairs, and security configuration.
+        <h1 className="font-jakarta text-2xl sm:text-3xl font-extrabold text-white mb-2">
+          System Preferences & Configuration
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-400">
+          Manage your Receiver ID profile, theme preferences, and security options.
         </p>
       </div>
 
       {/* Receiver ID Box */}
-      <div className="p-6 rounded-3xl glass-panel border border-pvAccent/30 space-y-4">
+      <div className="p-6 rounded-3xl glass-panel space-y-4">
         <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
           Immutable Receiver ID
         </label>
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-pvDarker border border-pvAccent/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-slate-950/90 border border-slate-800 gap-4">
           <div className="space-y-1">
-            <div className="font-mono text-2xl font-extrabold text-pvAccent tracking-widest">{user?.receiverId}</div>
-            <div className="text-xs text-slate-400">This Receiver ID is permanently mapped to your RSA public key.</div>
+            <div className="font-mono text-2xl font-extrabold text-pvPrimary tracking-widest">
+              {user?.receiverId}
+            </div>
+            <div className="text-xs text-slate-400">
+              This Receiver ID is permanently mapped to your browser RSA public key.
+            </div>
           </div>
 
           <button
             onClick={copyReceiverId}
-            className="px-5 py-2.5 rounded-xl font-bold text-xs bg-pvAccent/20 hover:bg-pvAccent/30 text-pvAccent border border-pvAccent/40 transition-colors flex items-center space-x-2"
+            className="px-5 py-2.5 rounded-2xl font-bold text-xs bg-pvPrimary/20 hover:bg-pvPrimary/30 text-pvPrimary border border-pvPrimary/40 transition-colors flex items-center space-x-2 self-start sm:self-auto"
           >
             {copied ? <Check className="w-4 h-4 text-pvSuccess" /> : <Copy className="w-4 h-4" />}
             <span>{copied ? 'Copied!' : 'Copy ID'}</span>
@@ -44,30 +54,59 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* User Profile */}
-      <div className="p-6 rounded-3xl glass-panel border border-pvAccent/30 space-y-4">
+      {/* Appearance & Theme Settings */}
+      <div className="p-6 rounded-3xl glass-panel space-y-4">
         <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-          User Profile
+          Appearance & Theme
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-300">
-          <div>
-            <span className="text-xs text-slate-500 block">Full Name</span>
-            <span className="font-semibold text-white">{user?.fullName}</span>
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
+          <div className="flex items-center space-x-3">
+            {theme === 'dark' ? (
+              <Moon className="w-5 h-5 text-pvPrimary" />
+            ) : (
+              <Sun className="w-5 h-5 text-amber-400" />
+            )}
+            <div>
+              <h4 className="text-xs font-bold text-white">Interface Theme</h4>
+              <p className="text-[11px] text-slate-400">
+                Currently using {theme === 'dark' ? 'Dark Space Mode' : 'Clean Light Mode'}
+              </p>
+            </div>
           </div>
-          <div>
-            <span className="text-xs text-slate-500 block">Username</span>
-            <span className="font-semibold text-white">{user?.username}</span>
-          </div>
-          <div>
-            <span className="text-xs text-slate-500 block">Email</span>
-            <span className="font-semibold text-white">{user?.email}</span>
-          </div>
-          <div>
-            <span className="text-xs text-slate-500 block">Security Rating</span>
-            <span className="font-semibold text-pvSuccess">{user?.securityScore || 98}% (Maximum E2EE Protection)</span>
-          </div>
+
+          <button
+            onClick={toggleTheme}
+            className="px-4 py-2 rounded-2xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all"
+          >
+            Switch to {theme === 'dark' ? 'Light' : 'Dark'}
+          </button>
         </div>
       </div>
-    </div>
+
+      {/* Notification Preferences */}
+      <div className="p-6 rounded-3xl glass-panel space-y-4">
+        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+          Real-Time Notifications
+        </label>
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
+          <div className="flex items-center space-x-3">
+            <Bell className="w-5 h-5 text-pvPrimary" />
+            <div>
+              <h4 className="text-xs font-bold text-white">Desktop & WebSocket Push Notifications</h4>
+              <p className="text-[11px] text-slate-400">
+                Receive instant toasts when an encrypted vault is delivered to your User ID.
+              </p>
+            </div>
+          </div>
+
+          <input
+            type="checkbox"
+            checked={notificationsEnabled}
+            onChange={(e) => setNotificationsEnabled(e.target.checked)}
+            className="w-4 h-4 rounded text-pvPrimary bg-slate-900 border-slate-700 focus:ring-pvPrimary"
+          />
+        </div>
+      </div>
+    </PageTransition>
   );
 };
