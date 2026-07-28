@@ -309,30 +309,31 @@ export const CreateVaultPage: React.FC = () => {
           </div>
 
           {/* Segmented Control Tabs */}
-          <div className="flex rounded-2xl bg-slate-950/80 p-1 border border-slate-800">
+          <div className="flex rounded-2xl bg-slate-950/80 p-1 border border-slate-800 gap-1">
             <button
               type="button"
               onClick={() => setActiveTab('text')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all ${
+              className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center space-x-1.5 sm:space-x-2 transition-all whitespace-nowrap ${
                 activeTab === 'text'
                   ? 'bg-pvPrimary text-white shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-4 h-4 flex-shrink-0" />
               <span>Encrypted Note</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('file')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all ${
+              className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center space-x-1.5 sm:space-x-2 transition-all whitespace-nowrap ${
                 activeTab === 'file'
                   ? 'bg-pvPrimary text-white shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Upload className="w-4 h-4" />
-              <span>File Payload (Up to 50MB)</span>
+              <Upload className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">File Payload (Up to 50MB)</span>
+              <span className="sm:hidden">File Payload (50MB)</span>
             </button>
           </div>
 
@@ -421,11 +422,14 @@ export const CreateVaultPage: React.FC = () => {
             )}
           </div>
 
-          {/* Time Expiry Options */}
+          {/* Time Expiry Options (Hourly & Preset options) */}
           <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
-              <Clock className="w-4 h-4 text-pvPrimary" />
-              <span>Time-based Expiration</span>
+            <label className="block text-xs font-semibold text-slate-300 flex items-center justify-between">
+              <span className="flex items-center space-x-1.5">
+                <Clock className="w-4 h-4 text-pvPrimary" />
+                <span>Hourly & Time-based Expiration</span>
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">Auto-expires vault</span>
             </label>
             <select
               value={isCustomTime ? 'custom' : expiryMinutes}
@@ -437,14 +441,19 @@ export const CreateVaultPage: React.FC = () => {
                   setExpiryMinutes(Number(e.target.value));
                 }
               }}
-              className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 text-slate-200 text-xs rounded-2xl px-4 py-2.5 outline-none font-sans"
+              className="w-full bg-slate-950/80 dark:bg-pvBg border border-slate-800 dark:border-white/10 text-slate-200 text-xs rounded-2xl px-4 py-3 outline-none font-sans focus:border-pvPrimary transition-all cursor-pointer"
             >
-              <option value={60}>1 Hour</option>
-              <option value={720}>12 Hours</option>
-              <option value={1440}>24 Hours (1 Day - Default)</option>
-              <option value={10080}>7 Days</option>
-              <option value={-1}>Never Expire (Keep Until Deleted)</option>
-              <option value="custom">Custom Time Limit...</option>
+              <option value={60} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">⏱️ 1 Hour</option>
+              <option value={120} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">⏱️ 2 Hours</option>
+              <option value={180} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">⏱️ 3 Hours</option>
+              <option value={360} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">⏱️ 6 Hours</option>
+              <option value={720} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">⏱️ 12 Hours</option>
+              <option value={1440} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">📅 24 Hours (1 Day - Default)</option>
+              <option value={2880} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">📅 48 Hours (2 Days)</option>
+              <option value={10080} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">🗓️ 7 Days (1 Week)</option>
+              <option value={43200} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">🗓️ 30 Days (1 Month)</option>
+              <option value={-1} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">♾️ Never Expire (Keep Until Manual Delete)</option>
+              <option value="custom" className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">⚙️ Custom Time Limit...</option>
             </select>
 
             {isCustomTime && (
@@ -454,17 +463,69 @@ export const CreateVaultPage: React.FC = () => {
                   min={1}
                   value={customTimeValue}
                   onChange={(e) => setCustomTimeValue(Number(e.target.value))}
-                  className="w-24 bg-slate-950/80 border border-slate-800 text-white text-xs rounded-xl px-3 py-2 outline-none font-mono"
+                  placeholder="Enter duration"
+                  className="w-32 bg-slate-950/80 border border-slate-800 focus:border-pvPrimary text-white text-xs rounded-xl px-3 py-2 outline-none font-mono"
                 />
                 <select
                   value={customTimeUnit}
                   onChange={(e) => setCustomTimeUnit(e.target.value as any)}
-                  className="bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 outline-none"
+                  className="bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 outline-none cursor-pointer"
                 >
-                  <option value="minutes">Minutes</option>
-                  <option value="hours">Hours</option>
-                  <option value="days">Days</option>
+                  <option value="minutes" className="bg-slate-900 text-slate-100">Minutes</option>
+                  <option value="hours" className="bg-slate-900 text-slate-100">Hours</option>
+                  <option value="days" className="bg-slate-900 text-slate-100">Days</option>
                 </select>
+              </div>
+            )}
+          </div>
+
+          {/* View Limit / Max Views Options */}
+          <div className="space-y-2 pt-2 border-t border-slate-800/80">
+            <label className="block text-xs font-semibold text-slate-300 flex items-center justify-between">
+              <span className="flex items-center space-x-1.5">
+                <Eye className="w-4 h-4 text-pvSecondary" />
+                <span>Maximum View Count Limit</span>
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">Self-destructs after N views</span>
+            </label>
+            <select
+              value={isCustomViews ? 'custom' : (maxViews === undefined ? 'unlimited' : maxViews)}
+              onChange={(e) => {
+                if (e.target.value === 'unlimited') {
+                  setIsCustomViews(false);
+                  setMaxViews(undefined);
+                } else if (e.target.value === 'custom') {
+                  setIsCustomViews(true);
+                } else {
+                  setIsCustomViews(false);
+                  setMaxViews(Number(e.target.value));
+                }
+              }}
+              className="w-full bg-slate-950/80 dark:bg-pvBg border border-slate-800 dark:border-white/10 text-slate-200 text-xs rounded-2xl px-4 py-3 outline-none font-sans focus:border-pvSecondary transition-all cursor-pointer"
+            >
+              <option value="unlimited" className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">♾️ Unlimited Views</option>
+              <option value={1} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">🔥 1 View (Burn after reading)</option>
+              <option value={3} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">👁️ 3 Views Limit</option>
+              <option value={5} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">👁️ 5 Views Limit</option>
+              <option value={10} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">👁️ 10 Views Limit</option>
+              <option value={25} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">👁️ 25 Views Limit</option>
+              <option value={50} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">👁️ 50 Views Limit</option>
+              <option value={100} className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">👁️ 100 Views Limit</option>
+              <option value="custom" className="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100">⚙️ Custom View Count...</option>
+            </select>
+
+            {isCustomViews && (
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={10000}
+                  value={customViewsValue}
+                  onChange={(e) => setCustomViewsValue(Number(e.target.value))}
+                  placeholder="Max Views"
+                  className="w-32 bg-slate-950/80 border border-slate-800 focus:border-pvSecondary text-white text-xs rounded-xl px-3 py-2 outline-none font-mono"
+                />
+                <span className="text-xs text-slate-400 font-mono">views allowed before self-destruct</span>
               </div>
             )}
           </div>
@@ -481,7 +542,13 @@ export const CreateVaultPage: React.FC = () => {
             <input
               type="checkbox"
               checked={deleteAfterReading}
-              onChange={(e) => setDeleteAfterReading(e.target.checked)}
+              onChange={(e) => {
+                setDeleteAfterReading(e.target.checked);
+                if (e.target.checked) {
+                  setMaxViews(1);
+                  setIsCustomViews(false);
+                }
+              }}
               className="w-4 h-4 rounded text-pvDanger bg-slate-900 border-slate-700 focus:ring-pvDanger"
             />
           </div>

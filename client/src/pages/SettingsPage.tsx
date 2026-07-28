@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { PageTransition } from '../components/PageTransition';
-import { User, Copy, Check, Shield, Key, Sun, Moon, Bell, Lock } from 'lucide-react';
+import { Copy, Check, Moon, Bell } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const [copied, setCopied] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
@@ -54,34 +52,7 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Appearance & Theme Settings */}
-      <div className="p-6 rounded-3xl glass-panel space-y-4">
-        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-          Appearance & Theme
-        </label>
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-          <div className="flex items-center space-x-3">
-            {theme === 'dark' ? (
-              <Moon className="w-5 h-5 text-pvPrimary" />
-            ) : (
-              <Sun className="w-5 h-5 text-amber-400" />
-            )}
-            <div>
-              <h4 className="text-xs font-bold text-white">Interface Theme</h4>
-              <p className="text-[11px] text-slate-400">
-                Currently using {theme === 'dark' ? 'Dark Space Mode' : 'Clean Light Mode'}
-              </p>
-            </div>
-          </div>
 
-          <button
-            onClick={toggleTheme}
-            className="px-4 py-2 rounded-2xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all"
-          >
-            Switch to {theme === 'dark' ? 'Light' : 'Dark'}
-          </button>
-        </div>
-      </div>
 
       {/* Notification Preferences */}
       <div className="p-6 rounded-3xl glass-panel space-y-4">

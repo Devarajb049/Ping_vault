@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import QRCode from 'qrcode';
-import { X, Copy, Check, QrCode, Share2, Link as LinkIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Copy, Check, Share2, Link as LinkIcon } from 'lucide-react';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -9,18 +8,9 @@ interface ShareModalProps {
 }
 
 export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, vaultId }) => {
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
 
   const shareUrl = `${window.location.origin}/received?vaultId=${vaultId}`;
-
-  useEffect(() => {
-    if (isOpen && vaultId) {
-      QRCode.toDataURL(shareUrl, { width: 200, margin: 2 }, (err, url) => {
-        if (!err) setQrCodeUrl(url);
-      });
-    }
-  }, [isOpen, vaultId, shareUrl]);
 
   if (!isOpen) return null;
 
@@ -51,16 +41,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, vaultId
             <X className="w-5 h-5" />
           </button>
         </div>
-
-        {/* QR Code Display */}
-        {qrCodeUrl && (
-          <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-            <img src={qrCodeUrl} alt="Vault QR Code" className="w-44 h-44 rounded-lg shadow-sm" />
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">
-              Scan with mobile camera to access vault
-            </span>
-          </div>
-        )}
 
         {/* Copy Shareable Link */}
         <div className="space-y-2">

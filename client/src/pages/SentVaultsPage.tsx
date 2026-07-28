@@ -16,6 +16,8 @@ import {
   ShieldCheck,
   Ban,
   ExternalLink,
+  Search,
+  X,
 } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 
@@ -25,6 +27,7 @@ export const SentVaultsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Selected Vault Modal State
   const [selectedVaultModal, setSelectedVaultModal] = useState<any | null>(null);
@@ -85,7 +88,7 @@ export const SentVaultsPage: React.FC = () => {
     try {
       const res = await axios.delete(`/api/v1/vaults/delete/${vaultId}`);
       if (res.data.success) {
-        addToast('🗑 File Deleted', 'The shared vault has been permanently deleted.', 'danger');
+        addToast('File Deleted', 'The shared vault has been permanently deleted.', 'danger');
         if (selectedVaultModal?.id === vaultId) {
           setSelectedVaultModal(null);
         }
@@ -95,6 +98,17 @@ export const SentVaultsPage: React.FC = () => {
       setActionError(err.response?.data?.message || 'Failed to delete vault');
     }
   };
+
+  // Filter sent vaults by search query (title or recipient ID)
+  const filteredVaults = createdVaults.filter((v) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const matchTitle = v.titleEncrypted?.toLowerCase().includes(q);
+    const matchRecipient = v.recipients?.some((r: any) =>
+      r.receiverId?.toLowerCase().includes(q)
+    );
+    return matchTitle || matchRecipient;
+  });
 
   return (
     <PageTransition className="max-w-7xl mx-auto space-y-6 pb-24 md:pb-8">
@@ -118,6 +132,34 @@ export const SentVaultsPage: React.FC = () => {
         </button>
       </div>
 
+      {/* Search Bar Toolbar */}
+      <div className="p-4 rounded-3xl glass-panel flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative w-full sm:w-96">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search sent vaults by title or recipient User ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-slate-950/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary text-slate-200 text-xs rounded-2xl pl-9 pr-9 py-2.5 outline-none transition-all placeholder:text-slate-500 font-sans"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-3 text-slate-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {searchQuery && (
+          <span className="text-xs font-mono text-slate-400">
+            Found <span className="text-pvPrimary font-bold">{filteredVaults.length}</span> vault(s)
+          </span>
+        )}
+      </div>
+
       {actionError && (
         <div className="p-4 rounded-2xl bg-pvDanger/10 border border-pvDanger/30 text-pvDanger text-xs sm:text-sm flex items-center space-x-3">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -127,21 +169,25 @@ export const SentVaultsPage: React.FC = () => {
 
       {loading ? (
         <SkeletonLoader type="card" count={4} />
-      ) : createdVaults.length === 0 ? (
+      ) : filteredVaults.length === 0 ? (
         <div className="p-12 rounded-3xl glass-panel text-center space-y-4">
           <div className="w-16 h-16 rounded-3xl bg-slate-800/50 flex items-center justify-center text-slate-500 mx-auto">
             <Send className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="font-bold text-base text-white">No Transmitted Vaults Yet</h3>
+            <h3 className="font-bold text-base text-white">
+              {searchQuery ? 'No Matching Sent Vaults Found' : 'No Transmitted Vaults Yet'}
+            </h3>
             <p className="text-xs text-slate-400">
-              Create your first zero-knowledge encrypted vault to transmit confidential payloads.
+              {searchQuery
+                ? `No vaults found matching "${searchQuery}"`
+                : 'Create your first zero-knowledge encrypted vault to transmit confidential payloads.'}
             </p>
           </div>
         </div>
       ) : (
         <div className="space-y-4">
-          {createdVaults.map((v) => {
+          {filteredVaults.map((v) => {
             const now = new Date();
             const isExpired =
               (v.expiryTime && new Date(v.expiryTime) < now) ||
@@ -158,7 +204,7 @@ export const SentVaultsPage: React.FC = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-jakarta font-bold text-lg text-white">
+                      <h3 className="font-jakarta font-bold text-base sm:text-lg text-white truncate max-w-xs sm:max-w-md" title={v.titleEncrypted}>
                         {v.titleEncrypted || 'Encrypted Vault Payload'}
                       </h3>
                       {isExpired ? (
@@ -182,13 +228,6 @@ export const SentVaultsPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={() => setShareModalVaultId(v.id)}
-                      className="px-3.5 py-2 rounded-xl font-bold text-xs bg-pvPrimary/20 hover:bg-pvPrimary/30 text-pvPrimary border border-pvPrimary/40 transition-colors flex items-center space-x-1.5"
-                    >
-                      <Share2 className="w-4 h-4" />
-                      <span>Share QR</span>
-                    </button>
                     {!isExpired && (
                       <button
                         onClick={(e) => handleRevoke(v.id, e)}
@@ -239,15 +278,6 @@ export const SentVaultsPage: React.FC = () => {
             );
           })}
         </div>
-      )}
-
-      {/* Share QR Code Modal */}
-      {shareModalVaultId && (
-        <ShareModal
-          isOpen={!!shareModalVaultId}
-          onClose={() => setShareModalVaultId(null)}
-          vaultId={shareModalVaultId}
-        />
       )}
     </PageTransition>
   );

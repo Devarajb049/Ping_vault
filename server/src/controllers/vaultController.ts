@@ -456,7 +456,16 @@ export class VaultController {
         return;
       }
 
-      res.json({ success: true, message: 'Received vault reference deleted from your inbox' });
+      // Purge all activity logs associated with this deleted received vault for this recipient
+      await ActivityLog.deleteMany({
+        $or: [
+          { vaultId: shared.vaultId, userId: req.user?.userId },
+          { vaultId: shared.vaultId, receiverId: receiverIdHash },
+          { vaultId: shared.vaultId, receiverId: receiverId },
+        ],
+      });
+
+      res.json({ success: true, message: 'Received vault reference and associated activity logs deleted' });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }

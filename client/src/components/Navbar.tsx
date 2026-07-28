@@ -6,7 +6,7 @@ import { BrandLogo } from './BrandLogo';
 import { LogoutConfirmModal } from './LogoutConfirmModal';
 import { NotificationDrawer } from './NotificationDrawer';
 import { ProfileMenuModal } from './ProfileMenuModal';
-import { Copy, Check, Bell, Search, Sun, Moon, LogOut, ShieldCheck, Menu, X } from 'lucide-react';
+import { Copy, Check, Bell, Search, Sun, Moon, LogOut, ShieldCheck, Menu, X, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
@@ -23,7 +23,6 @@ export const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) =
   const [copied, setCopied] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const copyReceiverId = () => {
     if (user?.receiverId) {
@@ -39,49 +38,25 @@ export const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) =
     navigate('/login');
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/received?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
   return (
     <>
       <header className="fixed top-0 left-0 right-0 h-16 border-b border-slate-800/60 dark:border-white/10 bg-slate-950/80 dark:bg-pvBg/80 backdrop-blur-2xl z-40 px-3 md:px-6 flex items-center justify-between transition-colors">
-        {/* Left Side: Sidebar Toggle & Brand */}
+        {/* Left Side: Brand Logo & Sidebar Toggle */}
         <div className="flex items-center space-x-3">
+          <Link to="/dashboard" className="flex items-center space-x-2 group">
+            <BrandLogo size="md" variant="full" />
+          </Link>
+
           {user && setSidebarOpen && (
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors hidden md:flex"
-              title="Toggle Sidebar"
+              title={sidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
             >
-              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {sidebarOpen ? <ChevronsLeft className="w-5 h-5 text-pvPrimary" /> : <ChevronsRight className="w-5 h-5 text-pvPrimary" />}
             </button>
           )}
-
-          <Link to="/dashboard" className="flex items-center space-x-2 group">
-            <BrandLogo size="md" variant="full" />
-          </Link>
         </div>
-
-        {/* Center: Search Bar (Desktop) */}
-        {user && (
-          <form
-            onSubmit={handleSearchSubmit}
-            className="hidden lg:flex items-center max-w-md w-full mx-6 relative"
-          >
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search encrypted vaults, recipients, titles..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-900/80 dark:bg-white/5 border border-slate-800 dark:border-white/10 focus:border-pvPrimary text-slate-200 text-xs rounded-xl pl-9 pr-4 py-2 outline-none transition-all placeholder:text-slate-500 shadow-inner"
-            />
-          </form>
-        )}
 
         {/* Right Side: Actions & Profile */}
         {user && (
@@ -91,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) =
               type="button"
               onClick={copyReceiverId}
               title="Click to copy your unique User ID"
-              className="flex items-center space-x-1.5 bg-slate-900/90 dark:bg-white/5 border border-pvPrimary/40 hover:border-pvPrimary px-2.5 py-1.5 rounded-xl cursor-pointer transition-all shadow-inner group"
+              className="hidden sm:flex items-center space-x-1.5 bg-slate-900/90 dark:bg-white/5 border border-pvPrimary/40 hover:border-pvPrimary px-2.5 py-1.5 rounded-xl cursor-pointer transition-all shadow-inner group"
             >
               <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">ID:</span>
               <span className="font-mono text-xs font-bold text-pvPrimary dark:text-pvSecondary tracking-wide">
@@ -118,18 +93,7 @@ export const Navbar: React.FC<NavbarProps> = ({ sidebarOpen, setSidebarOpen }) =
               )}
             </button>
 
-            {/* Light / Dark Mode Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/50 dark:hover:bg-white/10 transition-colors"
-              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-5 h-5 text-amber-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-slate-700" />
-              )}
-            </button>
+
 
             {/* User Avatar & Dropdown */}
             <div className="relative border-l border-slate-800 dark:border-white/10 pl-2.5">

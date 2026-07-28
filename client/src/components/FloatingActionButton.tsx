@@ -6,7 +6,7 @@ export const FloatingActionButton: React.FC = () => {
   return (
     <Link
       to="/create"
-      className="fixed bottom-20 right-6 md:bottom-8 md:right-8 z-30 group flex items-center space-x-2 bg-gradient-to-r from-pvPrimary via-pvSecondary to-pvPrimary text-white p-4 md:px-5 md:py-3.5 rounded-2xl shadow-glow-primary hover:shadow-glow-accent transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
+      className="fixed bottom-20 right-6 md:bottom-8 md:right-8 z-30 group hidden md:flex items-center space-x-2 bg-gradient-to-r from-pvPrimary via-pvSecondary to-pvPrimary text-white p-4 md:px-5 md:py-3.5 rounded-2xl shadow-glow-primary hover:shadow-glow-accent transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
       title="Create New Encrypted Vault"
     >
       <div className="relative">

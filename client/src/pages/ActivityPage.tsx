@@ -99,62 +99,103 @@ export const ActivityPage: React.FC = () => {
         {loading ? (
           <SkeletonLoader type="table" count={5} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800/80 bg-slate-950/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="p-4">Event Action</th>
-                  <th className="p-4">User Agent / Client</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Details</th>
-                  <th className="p-4 text-right">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 text-xs text-slate-200">
-                {filteredLogs.map((log) => (
-                  <tr key={log._id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="p-4">
-                      <span className="font-mono font-bold text-pvPrimary">{log.action}</span>
-                    </td>
-                    <td className="p-4 text-slate-400 max-w-xs truncate">
-                      <div className="flex items-center space-x-2">
-                        <Monitor className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                        <span className="truncate">{log.userAgent}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          log.status === 'SUCCESS'
-                            ? 'bg-pvSuccess/15 text-pvSuccess border border-pvSuccess/30'
-                            : 'bg-pvDanger/15 text-pvDanger border border-pvDanger/30'
-                        }`}
-                      >
-                        {log.status === 'SUCCESS' ? (
-                          <ShieldCheck className="w-3 h-3" />
-                        ) : (
-                          <ShieldAlert className="w-3 h-3" />
-                        )}
-                        <span>{log.status}</span>
-                      </span>
-                    </td>
-                    <td className="p-4 text-slate-300">{log.details || 'N/A'}</td>
-                    <td className="p-4 text-right font-mono text-slate-400">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+          <>
+            {/* Mobile Card List View (RWD) */}
+            <div className="space-y-3 block sm:hidden">
+              {filteredLogs.map((log) => (
+                <div key={log._id} className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-pvPrimary text-xs">{log.action}</span>
+                    <span
+                      className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        log.status === 'SUCCESS'
+                          ? 'bg-pvSuccess/15 text-pvSuccess border border-pvSuccess/30'
+                          : 'bg-pvDanger/15 text-pvDanger border border-pvDanger/30'
+                      }`}
+                    >
+                      {log.status === 'SUCCESS' ? (
+                        <ShieldCheck className="w-3 h-3" />
+                      ) : (
+                        <ShieldAlert className="w-3 h-3" />
+                      )}
+                      <span>{log.status}</span>
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-300">{log.details || 'N/A'}</div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono pt-1 border-t border-slate-800/60">
+                    <div className="flex items-center space-x-1 truncate max-w-[180px]">
+                      <Monitor className="w-3 h-3 text-slate-500 flex-shrink-0" />
+                      <span className="truncate">{log.userAgent}</span>
+                    </div>
+                    <span>{new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                </div>
+              ))}
+              {filteredLogs.length === 0 && (
+                <div className="p-8 text-center text-slate-500 font-mono text-xs italic">
+                  No activity logs recorded yet.
+                </div>
+              )}
+            </div>
 
-                {filteredLogs.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="p-12 text-center text-slate-500 font-mono italic">
-                      No activity logs recorded yet.
-                    </td>
+            {/* Desktop Table View */}
+            <div className="overflow-x-auto hidden sm:block">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-slate-800/80 bg-slate-950/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <th className="p-4">Event Action</th>
+                    <th className="p-4">User Agent / Client</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">Details</th>
+                    <th className="p-4 text-right">Timestamp</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-xs text-slate-200">
+                  {filteredLogs.map((log) => (
+                    <tr key={log._id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="p-4">
+                        <span className="font-mono font-bold text-pvPrimary">{log.action}</span>
+                      </td>
+                      <td className="p-4 text-slate-400 max-w-xs truncate">
+                        <div className="flex items-center space-x-2">
+                          <Monitor className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                          <span className="truncate">{log.userAgent}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            log.status === 'SUCCESS'
+                              ? 'bg-pvSuccess/15 text-pvSuccess border border-pvSuccess/30'
+                              : 'bg-pvDanger/15 text-pvDanger border border-pvDanger/30'
+                          }`}
+                        >
+                          {log.status === 'SUCCESS' ? (
+                            <ShieldCheck className="w-3 h-3" />
+                          ) : (
+                            <ShieldAlert className="w-3 h-3" />
+                          )}
+                          <span>{log.status}</span>
+                        </span>
+                      </td>
+                      <td className="p-4 text-slate-300">{log.details || 'N/A'}</td>
+                      <td className="p-4 text-right font-mono text-slate-400">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+
+                  {filteredLogs.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-12 text-center text-slate-500 font-mono italic">
+                        No activity logs recorded yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </PageTransition>

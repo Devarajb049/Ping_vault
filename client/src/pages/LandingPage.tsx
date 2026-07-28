@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Shield,
@@ -24,11 +24,64 @@ import { PageTransition } from '../components/PageTransition';
 import { motion } from 'framer-motion';
 
 export const LandingPage: React.FC = () => {
-  const [simulatedText, setSimulatedText] = useState('Confidential API secret token: sk_live_99218');
+  const [plainText, setPlainText] = useState('Confidential API secret token: sk_live_99218');
+  const [ciphertext, setCiphertext] = useState('');
   const [isEncrypted, setIsEncrypted] = useState(false);
+  const [isEncrypting, setIsEncrypting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const toggleSimulatedEncryption = () => {
-    setIsEncrypted(!isEncrypted);
+  const toggleEncryption = async () => {
+    if (isEncrypting) return;
+
+    if (!isEncrypted) {
+      setIsEncrypting(true);
+      try {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(plainText || 'Empty payload');
+
+        // Generate 256-bit AES-GCM Key in browser
+        const key = await window.crypto.subtle.generateKey(
+          { name: 'AES-GCM', length: 256 },
+          true,
+          ['encrypt', 'decrypt']
+        );
+
+        // 12-byte IV
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+        const encryptedBuffer = await window.crypto.subtle.encrypt(
+          { name: 'AES-GCM', iv },
+          key,
+          data
+        );
+
+        const ivBase64 = btoa(String.fromCharCode(...iv));
+        const cipherBase64 = btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer)));
+
+        setCiphertext(`AES256-GCM::IV[${ivBase64.slice(0, 8)}...]::CIPHER[${cipherBase64}]`);
+        setIsEncrypted(true);
+      } catch (err) {
+        console.error('WebCrypto Sandbox Error:', err);
+      } finally {
+        setIsEncrypting(false);
+      }
+    } else {
+      setIsEncrypted(false);
+    }
+  };
+  useEffect(() => {
+    const timer = setInterval(() => {
+      toggleEncryption();
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [isEncrypted, plainText]);
+
+
+  const copyToClipboard = () => {
+    const textToCopy = isEncrypted ? ciphertext : plainText;
+    navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -42,13 +95,13 @@ export const LandingPage: React.FC = () => {
           <div className="flex items-center space-x-3">
             <Link
               to="/login"
-              className="px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 border border-slate-800 dark:border-white/10 transition-all"
+              className="px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 border border-slate-800 dark:border-white/10 transition-all whitespace-nowrap"
             >
               Sign In
             </Link>
             <Link
               to="/register"
-              className="px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all"
+              className="px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all whitespace-nowrap"
             >
               Start Free
             </Link>
@@ -77,14 +130,14 @@ export const LandingPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             to="/register"
-            className="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-base bg-pvPrimary text-white shadow-glow-primary hover:scale-105 transition-all flex items-center justify-center space-x-3"
+            className="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-base bg-pvPrimary text-white shadow-glow-primary hover:scale-105 transition-all flex items-center justify-center space-x-3 whitespace-nowrap"
           >
             <span>Create Encrypted Vault</span>
             <ArrowRight className="w-5 h-5" />
           </Link>
           <Link
             to="/login"
-            className="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-base bg-slate-900/80 border border-slate-800 dark:border-white/10 text-slate-200 hover:bg-slate-900 transition-all"
+            className="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-base bg-slate-900/80 border border-slate-800 dark:border-white/10 text-slate-200 hover:bg-slate-900 transition-all whitespace-nowrap"
           >
             Access Vault Dashboard
           </Link>
@@ -92,16 +145,17 @@ export const LandingPage: React.FC = () => {
 
         {/* Live Interactive Encryption Sandbox Simulation */}
         <div className="mt-16 p-6 sm:p-8 rounded-3xl glass-panel border border-slate-800 dark:border-white/10 shadow-2xl max-w-3xl mx-auto text-left space-y-4 relative overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 gap-3">
             <div className="flex items-center space-x-2">
-              <Cpu className="w-4 h-4 text-pvPrimary" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              <Cpu className="w-4 h-4 text-pvPrimary flex-shrink-0" />
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">
                 WebCrypto Browser Encryption Sandbox
               </span>
             </div>
             <button
-              onClick={toggleSimulatedEncryption}
-              className="px-3 py-1.5 rounded-xl font-bold text-xs bg-pvPrimary/20 text-pvPrimary border border-pvPrimary/40 hover:bg-pvPrimary/30 transition-all flex items-center space-x-1.5"
+              onClick={toggleEncryption}
+              disabled={isEncrypting}
+              className="px-4 py-2 rounded-xl font-bold text-xs bg-pvPrimary/20 text-pvPrimary border border-pvPrimary/40 hover:bg-pvPrimary/30 transition-all flex items-center justify-center space-x-1.5 whitespace-nowrap self-start sm:self-auto"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>{isEncrypted ? 'Decrypt Payload' : 'Encrypt Payload'}</span>
@@ -109,14 +163,28 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[11px] font-mono text-slate-400 uppercase">
-              Payload Buffer ({isEncrypted ? 'AES-256-GCM Ciphertext' : 'Plaintext Secret'})
-            </label>
-            <div className="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 font-mono text-xs text-pvPrimary leading-relaxed break-all">
-              {isEncrypted
-                ? 'u7G3k9L+q1v/RSA-OAEP+AES256GCM==9981A7F2BC0019284712093847102938471092384710293847192837491827349182734918'
-                : simulatedText}
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-mono text-slate-400 uppercase flex items-center space-x-1.5">
+                <span>Payload Buffer ({isEncrypted ? 'AES-256-GCM Ciphertext' : 'Plaintext Secret - Editable'})</span>
+              </label>
+              {!isEncrypted && (
+                <span className="text-[10px] font-mono text-pvPrimary/80">Type to test live encryption</span>
+              )}
             </div>
+
+            {isEncrypted ? (
+              <div className="p-4 rounded-2xl bg-slate-950/90 border border-pvPrimary/30 font-mono text-xs text-pvPrimary leading-relaxed break-all shadow-inner transition-all">
+                {ciphertext}
+              </div>
+            ) : (
+              <textarea
+                value={plainText}
+                onChange={(e) => setPlainText(e.target.value)}
+                placeholder="Type any confidential text or payload to test encryption..."
+                rows={2}
+                className="w-full p-4 rounded-2xl bg-slate-950/90 border border-slate-800 focus:border-pvPrimary/60 focus:ring-1 focus:ring-pvPrimary/60 text-xs font-mono text-slate-200 leading-relaxed outline-none resize-none transition-all"
+              />
+            )}
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 font-mono">

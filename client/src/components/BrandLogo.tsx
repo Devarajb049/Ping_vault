@@ -5,12 +5,14 @@ interface BrandLogoProps {
   size?: 'sm' | 'md' | 'lg';
   variant?: 'full' | 'icon';
   className?: string;
+  showProBadge?: boolean;
 }
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 'md',
   variant = 'full',
   className = '',
+  showProBadge = false,
 }) => {
   const sizeClasses = {
     sm: { icon: 'w-7 h-7', shield: 'w-4 h-4', title: 'text-base' },
@@ -33,7 +35,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           <div className={`font-jakarta font-extrabold ${currentSize.title} tracking-tight bg-gradient-to-r from-slate-100 via-slate-200 to-slate-400 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent`}>
             PING<span className="text-pvPrimary dark:text-pvSecondary font-black">VAULT</span>
           </div>
-          <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase font-semibold -mt-1">
+          <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase font-semibold -mt-1 whitespace-nowrap">
             Zero-Knowledge E2EE
           </span>
         </div>

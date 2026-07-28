@@ -91,7 +91,7 @@ export const ReceivedVaultsPage: React.FC = () => {
     try {
       const res = await axios.delete(`/api/v1/vaults/received/delete/${sharedId}`);
       if (res.data.success) {
-        addToast('🗑 Vault Removed', 'Received vault removed from your inbox.', 'danger');
+        addToast('Vault Removed', 'Received vault removed from your inbox.', 'danger');
         if (detailsModalVault?.sharedId === sharedId) {
           setDetailsModalVault(null);
         }
@@ -172,8 +172,13 @@ export const ReceivedVaultsPage: React.FC = () => {
 
   const isActualFilePayload = (payload: string, metadata?: any) => {
     if (!payload) return false;
-    if (metadata && (metadata.originalNameEncrypted || metadata.mimeType)) return true;
-    return payload.startsWith('data:') && payload.includes(';base64,');
+    // Base64 Data URLs (e.g. data:image/png;base64,...) are file attachments
+    if (payload.startsWith('data:') && payload.includes(';base64,')) return true;
+    // Explicit file attachments with non-plain text mime type or original name
+    if (metadata?.originalNameEncrypted && metadata?.mimeType && metadata.mimeType !== 'text/plain') {
+      return true;
+    }
+    return false;
   };
 
   const handleDownloadFile = (payload: string, metadata?: any) => {
@@ -306,7 +311,7 @@ export const ReceivedVaultsPage: React.FC = () => {
                         ) : (
                           <FileText className="w-4 h-4 text-pvPurple flex-shrink-0" />
                         )}
-                        <span className="truncate max-w-xs">{v.titleEncrypted || 'Encrypted Vault'}</span>
+                        <span className="truncate max-w-[180px] sm:max-w-xs" title={v.titleEncrypted}>{v.titleEncrypted || 'Encrypted Vault'}</span>
                       </td>
 
                       <td className="p-4 font-mono text-pvPrimary font-semibold">
@@ -335,12 +340,14 @@ export const ReceivedVaultsPage: React.FC = () => {
 
                       <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end space-x-2">
-                          <button
-                            onClick={() => handleOpenVault(v)}
-                            className="px-3 py-1.5 rounded-xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all"
-                          >
-                            Decrypt
-                          </button>
+                          {!isExpired && (
+                            <button
+                              onClick={() => handleOpenVault(v)}
+                              className="px-3 py-1.5 rounded-xl font-bold text-xs bg-pvPrimary text-white shadow-glow-primary hover:opacity-90 transition-all"
+                            >
+                              Decrypt
+                            </button>
+                          )}
                           <button
                             onClick={() => handleDeleteReceivedVault(v.sharedId)}
                             className="p-1.5 rounded-xl text-slate-400 hover:text-pvDanger hover:bg-pvDanger/10 transition-colors"

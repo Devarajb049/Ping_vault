@@ -13,7 +13,7 @@ export const BottomNav: React.FC = () => {
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/received', label: 'Received', icon: FolderLock },
-    { to: '/create', label: 'Send', icon: PlusCircle, isPrimary: true },
+    { to: '/create', label: 'Send', icon: PlusCircle },
     { to: '/sent', label: 'Sent', icon: Share2 },
     { to: '/activity', label: 'Activity', icon: Activity },
   ];
@@ -23,23 +23,6 @@ export const BottomNav: React.FC = () => {
       <nav className="glass-panel bg-slate-950/90 dark:bg-pvBg/90 border border-slate-800/80 dark:border-white/10 rounded-2xl p-2 flex items-center justify-around shadow-2xl backdrop-blur-2xl">
         {navItems.map((item) => {
           const Icon = item.icon;
-          if (item.isPrimary) {
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex flex-col items-center justify-center -mt-6 p-3 rounded-2xl bg-gradient-to-br from-pvPrimary to-pvSecondary text-white shadow-glow-primary transition-all active:scale-95 ${
-                    isActive ? 'ring-4 ring-pvPrimary/30' : ''
-                  }`
-                }
-              >
-                <Icon className="w-6 h-6" />
-                <span className="sr-only">Send Vault</span>
-              </NavLink>
-            );
-          }
-
           return (
             <NavLink
               key={item.to}

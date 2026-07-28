@@ -98,24 +98,7 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
             <span>System Preferences</span>
           </Link>
 
-          <button
-            onClick={() => {
-              toggleTheme();
-            }}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/60 dark:hover:bg-white/5 transition-colors"
-          >
-            <div className="flex items-center space-x-3">
-              {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400" />
-              ) : (
-                <Moon className="w-4 h-4 text-slate-400" />
-              )}
-              <span>Theme Mode</span>
-            </div>
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
-              {theme}
-            </span>
-          </button>
+
         </div>
 
         {/* Sign out */}
