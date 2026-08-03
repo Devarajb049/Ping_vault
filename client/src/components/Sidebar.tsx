@@ -36,20 +36,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
 
   return (
     <aside
-      className={`fixed top-16 left-0 bottom-0 ${
-        collapsed ? 'w-20' : 'w-64'
-      } bg-slate-950/95 dark:bg-pvBg/95 backdrop-blur-2xl border-r border-slate-800/60 dark:border-white/10 p-4 flex flex-col justify-between hidden md:flex z-30 transition-all duration-300 shadow-2xl`}
+      className={`fixed top-16 left-0 bottom-0 ${collapsed ? 'w-20' : 'w-64'
+        } bg-slate-950/95 dark:bg-pvBg/95 backdrop-blur-2xl border-r border-slate-800/60 dark:border-white/10 p-4 flex flex-col justify-between hidden md:flex z-30 transition-all duration-300 shadow-2xl`}
     >
       <div className="space-y-6">
-        {/* Section Header */}
-        {!collapsed && (
-          <div className="px-3 pt-2">
-            <h2 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-              Navigation Menu
-            </h2>
-          </div>
-        )}
-
         {/* Navigation Links */}
         <nav className="space-y-1.5">
           {navItems.map((item) => {
@@ -59,10 +49,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
-                    isActive
-                      ? 'bg-pvPrimary text-white shadow-glow-primary font-bold'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/50 dark:hover:bg-white/5'
+                  `flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${isActive
+                    ? 'bg-pvPrimary text-white shadow-glow-primary font-bold'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50 dark:hover:bg-white/5'
                   }`
                 }
                 title={collapsed ? item.label : undefined}
